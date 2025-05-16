@@ -1,0 +1,69 @@
+.photo-gallery {
+  /* display: flex; */
+  flex-wrap: wrap;
+  gap: 16px;  /* 사진 간격 조정 */
+  max-height: 500px; /* 최대 높이 설정 (원하는 값으로 조정 가능) */
+  overflow-y: auto;  /* 세로 스크롤 추가 */
+  padding: 10px;  /* 여백 추가 */
+  text-align: center;
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 5px 10px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.pagination button:hover {
+  background-color: #ddd;
+}
+
+.photo-item {
+  text-align: center; /* 부모 요소에서 텍스트(및 이미지) 가운데 정렬 */
+}
+
+.photo-item img {
+  width: 350px; /* 고정된 너비 */
+  height: 280px; /* 고정된 높이 */
+  object-fit: cover; /* 비율을 유지하며 잘라서 크기 맞추기 */
+  object-position: center; /* 이미지를 가운데로 정렬 */
+    display: block; /* inline-block 기본값을 없애고, block 요소로 만듬 */
+  margin: 0 auto; /* 수평 가운데 정렬 */
+}
+  .content-photo{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+  }
+  
+  .photo-title{
+    flex: 1;
+    padding: 0.5rem;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    background-color: #c7c9ca;
+    border-radius: 9px;
+    width: 100%;
+  }
+
+  .photo-image{
+    flex: 1 auto;
+    padding: 1rem;
+  }
+
+  .photo-image-img{
+    width: 120%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }

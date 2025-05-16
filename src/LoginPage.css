@@ -1,0 +1,80 @@
+/* src/pages/LoginPage.css */
+body {
+   /* background: #e0e0e0;*/
+    font-family: "Gulim", "Dotum", sans-serif;
+  }
+  
+  .login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #fef0ff;
+    position: relative;
+  }
+  
+  .login-box {
+    width: 320px;
+    padding: 20px;
+    border: 2px solid #000;
+    background-color: #fff;
+    box-shadow: 4px 4px 0 #888;
+  }
+  
+  .login-header {
+    background: #005bac;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .login-form label {
+    display: block;
+    margin: 10px 0 5px;
+  }
+  
+  .login-form input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #aaa;
+    font-family: "Gulim", sans-serif;
+  }
+  
+  .login-form button {
+    width: 100%;
+    margin-top: 15px;
+    background: #005bac;
+    color: white;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .login-footer {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 12px;
+  }
+  
+  .cy-logo {
+    width: 150px;
+    display: block;
+    margin: 0 auto 15px;
+  }
+  
+  .dot-character {
+    height: 60px;
+  }
+  
+  .character-wrapper {
+    position: absolute;
+    top: calc(50% - 245px); /* 숫자 클수록 위로 올라감 */
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 2;
+  }
+  
