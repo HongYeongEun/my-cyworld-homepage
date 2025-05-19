@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 
-function App() {
+function App(targetUserId) {
   const { user } = useAuth();
   const { nickname } = useParams();
 //   console.log('받은 닉네임:', nickname);
@@ -26,7 +26,7 @@ const [isFriend, setIsFriend] = useState(false);
   const [todayVisitorCount, setTodayVisitorCount] = useState(0);
   const [totalVisitorCount, setTotalVisitorCount] = useState(0);
   const [bgmPlaying, setBgmPlaying] = useState(false);
-  const [songTitle, setSongTitle] = useState('');
+  const [songTitle, setSongTitle] = useState('에픽하이 - Love Love Love.mp3');
   const [recommendedUsers, setRecommendedUsers] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
 const [newComment, setNewComment] = useState('');
@@ -34,61 +34,66 @@ const [newComment, setNewComment] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState(null);
 const [currentUserId, setCurrentUserId] = useState(null);
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      writer: 'hoya',
-      content: '일촌이 되어서 기뻐요! 😊',
-      date: '2025-05-15',
-    },
-    {
-      id: 2,
-      writer: 'minji',
-      content: '오늘도 좋은 하루 보내~!',
-      date: '2025-05-14',
-    },
-  ]);
+const senderId = currentUserId; // 예: 로그인한 유저
+  const [ilchonpyungList, setIlchonpyungList] = useState([]);
+  
+  
+// const receiverId = profileOwnerId; //
+//   const [comments, setComments] = useState([
+//     {
+//       id: 1,
+//       writer: 'hoya',
+//       content: '일촌이 되어서 기뻐요! 😊',
+//       date: '2025-05-15',
+//     },
+//     {
+//       id: 2,
+//       writer: 'minji',
+//       content: '오늘도 좋은 하루 보내~!',
+//       date: '2025-05-14',
+//     },
+//   ]);
 
-  const styles = {
+//   const styles = {
  
-  form: {
-    marginBottom: '1rem',
-  },
-  textarea: {
-    width: '70%',
-    height: '30px',
-    padding: '0.5rem',
-    fontSize: '14px',
-    borderRadius: '0.5rem',
-    border: '1px solid #ccc',
-    resize: 'none',
-  },
-  button: {
-    marginRight:'0.5rem',
-    marginTop: '0.5rem',
-    padding: '0.5rem 1rem',
-    background: '#00000',
-    color: 'black',
-    border: 'none',
-    cursor: 'pointer',
-  },
-  commentList: {
-    listStyle: 'none',
-    padding: 0,
-  },
-  commentItem: {
-    background: '#fff',
-    padding: '0.75rem',
-    marginBottom: '0.5rem',
-    borderRadius: '0.5rem',
+//   form: {
+//     marginBottom: '1rem',
+//   },
+//   textarea: {
+//     width: '70%',
+//     height: '30px',
+//     padding: '0.5rem',
+//     fontSize: '14px',
+//     borderRadius: '0.5rem',
+//     border: '1px solid #ccc',
+//     resize: 'none',
+//   },
+//   button: {
+//     marginRight:'0.5rem',
+//     marginTop: '0.5rem',
+//     padding: '0.5rem 1rem',
+//     background: '#00000',
+//     color: 'black',
+//     border: 'none',
+//     cursor: 'pointer',
+//   },
+//   commentList: {
+//     listStyle: 'none',
+//     padding: 0,
+//   },
+//   commentItem: {
+//     background: '#fff',
+//     padding: '0.75rem',
+//     marginBottom: '0.5rem',
+//     borderRadius: '0.5rem',
     
-  },
-  date: {
-    fontSize: '0.8rem',
-    color: '#999',
-    marginLeft: '0.5rem',
-  },
-};
+//   },
+//   date: {
+//     fontSize: '0.8rem',
+//     color: '#999',
+//     marginLeft: '0.5rem',
+//   },
+// };
   const homepageId = user?.nickname;
   const isOwnHome = viewedUser && String(currentUserId) === String(viewedUser.id);
   // 👇 아래에 콘솔 추가!
@@ -96,46 +101,77 @@ console.log('viewedUser:', viewedUser);
 console.log('currentUserId:', currentUserId);
 console.log('viewedUser.id:', viewedUser?.id);
 console.log('isOwnHome:', isOwnHome);
-
+  const loadIlchonpyung = async (userId) => {
+    try {
+      const response = await axios.get(`/api/ilchonpyung/${userId}`);
+      setIlchonpyungList(response.data);
+    } catch (error) {
+      console.error('일촌평 불러오기 실패:', error);
+    }
+  };
 useEffect(() => {
-  console.log("ownerId changed:", ownerId); // 찍히는지 확인
+  console.log("✅ myUserId:", myUserId, "(", typeof myUserId, ")");
+  console.log("✅ ownerId:", ownerId, "(", typeof ownerId, ")");
 
-  if (ownerId) {
-    console.log("Sending request to check friendship", myUserId, ownerId);
+  if (ownerId && myUserId) {
+    const url = `http://localhost:3005/friends/check?userId=${myUserId}&friendId=${ownerId}`;
+    console.log("🌐 Sending GET request to:", url);
 
-    axios.get(`http://localhost:3005/friends/friend/check?userId=${myUserId}&friendId=${ownerId}`)
+    axios.get(url)
       .then(res => {
-        console.log("Friend check result:", res.data);
+        console.log("🎯 Friend check response status:", res.status);
+        console.log("🎯 Friend check response data:", res.data);
         setIsFriend(res.data.isFriend);
       })
-      .catch(err => console.error("Friend check error:", err));
+      .catch(err => {
+        if (err.response) {
+          // 서버가 응답했지만 오류 코드가 있는 경우
+          console.error("❌ Friend check error response:", err.response.status, err.response.data);
+        } else if (err.request) {
+          // 요청은 됐지만 응답이 없는 경우
+          console.error("❌ Friend check no response:", err.request);
+        } else {
+          // 요청 설정 중 오류 발생
+          console.error("❌ Friend check setup error:", err.message);
+        }
+      });
   }
-}, [ownerId]);
+}, [ownerId, myUserId]);
 
- const handleSubmit = () => {
-    if (!newComment.trim()) return;
 
-    const newEntry = {
-      id: comments.length + 1,
-      writer: 'you', // 로그인 유저 기준
-      content: newComment,
-      date: new Date().toISOString().split('T')[0],
-    };
 
-    setComments([newEntry, ...comments]);
-    setNewComment('');
-  };
+
+//  const handleSubmit = () => {
+//     if (!newComment.trim()) return;
+
+//     const newEntry = {
+//       id: comments.length + 1,
+//       writer: 'you', // 로그인 유저 기준
+//       content: newComment,
+//       date: new Date().toISOString().split('T')[0],
+//     };
+
+//     setComments([newEntry, ...comments]);
+//     setNewComment('');
+//   };
 useEffect(() => {
   if (viewedUser?.id) {
     setOwnerId(viewedUser.id);
   }
 }, [viewedUser]);
+useEffect(() => {
+  console.log('targetUserId:', targetUserId);
+  if (targetUserId) {
+    loadIlchonpyung(targetUserId);
+  }
+}, [targetUserId]);
+
 
 
 const submitReview = () => {
   if (!newReview || !viewedUser?.id) return;
 
-  axios.post('http://localhost:3005/friend-review', {
+  axios.post('http://localhost:3005/friends/friend-review', {
     revieweeId: viewedUser.id,
     content: newReview
   }, {
@@ -144,7 +180,7 @@ const submitReview = () => {
   .then(() => {
     alert('일촌평 등록 완료!');
     setNewReview('');
-    return axios.get(`http://localhost:3005/friend-review/${viewedUser.id}`, {
+    return axios.get(`http://localhost:3005/friends/friend-review/${viewedUser.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
   })
@@ -154,15 +190,29 @@ const submitReview = () => {
     alert('일촌평 등록 실패');
   });
 };
+
 useEffect(() => {
-  if (viewedUser?.id) {
-    axios.get(`http://localhost:3005/friend-review/${viewedUser.id}`, {
+  if (viewedUser?.id && token) {
+    axios.get(`http://localhost:3005/friends/friend-review/${viewedUser.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
-    .then(res => setFriendReviews(res.data.reviews))
-    .catch(err => console.error('일촌평 불러오기 실패:', err));
+    .then(res => {
+      setFriendReviews(res.data.reviews);
+    })
+    .catch(err => {
+      console.error('일촌평 불러오기 실패:', err);
+    });
   }
-}, [viewedUser]);
+}, [viewedUser?.id, token]);
+// useEffect(() => {
+//   if (viewedUser?.id) {
+//     axios.get(`http://localhost:3005/friend-review/${viewedUser.id}`, {
+//       headers: { Authorization: `Bearer ${token}` }
+//     })
+//     .then(res => setFriendReviews(res.data.reviews))
+//     .catch(err => console.error('일촌평 불러오기 실패:', err));
+//   }
+// }, [viewedUser]);
 console.log('일촌인지 여부:', isFriend);
   // 🔍 검색 핸들러
   const handleSearch = async () => {
@@ -303,11 +353,21 @@ useEffect(() => {
 
 
   // 📁 카테고리 최신글 불러오기
-  useEffect(() => {
-    axios.get('http://localhost:3005/home/recent-categories')
-      .then(res => setCategoryData(res.data))
-      .catch(err => console.error('카테고리 데이터 불러오기 실패:', err));
-  }, []);
+useEffect(() => {
+  const fetchRecentCategories = async () => {
+    try {
+      const res = await axios.get(`http://localhost:3005/home/recent-categories/${ownerId}`);
+      console.log('최근 카테고리 데이터:', res.data);  // 프론트에서 찍기
+      setCategoryData(res.data);
+    } catch (err) {
+      console.error('최근 카테고리 불러오기 실패:', err);
+    }
+  };
+
+  if (ownerId) {
+    fetchRecentCategories();
+  }
+}, [ownerId]);
 
   // 🧑 추천 유저 목록 불러오기
   useEffect(() => {
@@ -320,13 +380,7 @@ useEffect(() => {
       .catch(err => console.error('추천 유저 불러오기 실패:', err));
   }, []);
 
- useEffect(() => {
-  if (ownerId && Array.isArray(myFriends) && myFriends.includes(ownerId)) {
-    setIsFriend(true);
-  } else {
-    setIsFriend(false);
-  }
-}, [ownerId, myFriends]);
+
 
 
   // 🎵 BGM 재생 토글
@@ -443,16 +497,33 @@ useEffect(() => {
 
  
 
- 
+ { !isFriend && viewedUser?.id && currentUserId !== viewedUser.id && (
+  <button onClick={() => sendFriendRequest(currentUserId, viewedUser.id)}>
+    일촌 신청
+  </button>
+)}
+
+
  
  
  
 <div className="box1">
-  <div className="header">BGM</div>
-  <div className="time" id="current-time"></div>
-  <div className="search">
-    <span id="songTitle">{songTitle}</span>
-  </div>
+   <div className="header">BGM</div>
+            <div className="time" id="current-time"></div>
+            <div className="search">
+              {/* <audio ref={bgmRef} loop>
+                <source src="image/fly.mp3" type="audio/mp3" />
+                브라우저가 오디오 태그를 지원하지 않습니다.
+              </audio> */}
+              <span id="songTitle" className="scrolling-text">{songTitle}</span>
+            </div>
+            <div className="controls">
+              <button className="btn">⏪</button>
+              <button className="btn" onClick={toggleBGM} id="playPauseBtn">
+                {bgmPlaying ? '🔊 일시정지' : '🔊 재생'}
+              </button>
+              <button className="btn">⏩</button>
+              </div>
 
   <div>
     <h2>사용자 검색</h2>
@@ -480,15 +551,13 @@ useEffect(() => {
   )}
   </div>
 
-  <div className="controls">
-    <button className="btn">⏪</button>
-    <button className="btn" onClick={toggleBGM} id="playPauseBtn">
-      {bgmPlaying ? '🔊 일시정지' : '🔊 재생'}
-    </button>
-    <button className="btn">⏩</button>
-  </div>
+  
 </div>
-
+<div style={{ margin: '10px 0' }}>
+  <Link to={`/${user?.nickname || 'default'}/`}>
+    <button>🏠 내 미니홈피로 돌아가기</button>
+  </Link>
+</div>
  
    <div className="bookcover">
      <div className="bookdot"></div>
@@ -597,25 +666,25 @@ useEffect(() => {
                  </div>
                  <div className="summary_main_content">
                    <div className="summary_content_category">사진첩</div>
-                   <div className="summary_content_count">8/25</div>
+                   <div className="summary_content_count">8/12</div>
                  </div>
                </div>
-               <div className="summary_main">
+               {/* <div className="summary_main">
                  <div className="summary_main_content">
                    <div className="summary_content_category">게시판</div>
-                   <div className="summary_content_count">8/25</div>
+                   <div className="summary_content_count">/25</div>
                  </div>
-                 {/* <div className="summary_main_content">
+                 <div className="summary_main_content">
                    <div className="summary_content_category">방명록</div>
                    <div className="summary_content_count">8/25</div>
-                 </div> */}
-               </div>
+                 </div>
+               </div> */}
              </div>
            </div>
            {/* 미니룸 */}
          <div className="Miniroom">🏠 일촌평</div>
-         <div style={styles.container}>
-      <h3></h3>
+
+      {/* <h3></h3>
 
       <div style={{
   display: 'flex',
@@ -654,18 +723,67 @@ useEffect(() => {
   >
     등록
   </button>
+</div> */}
+
+<div>
+  {/* 작성 영역: 일촌일 때만 보여줌 */}
+  {isFriend ? (
+    <div>
+      <textarea
+        value={newReview}
+        onChange={e => setNewReview(e.target.value)}
+        placeholder="일촌평을 작성하세요."
+        rows={3}
+        style={{ width: '90%', resize: 'none', marginLeft: '20px' }}
+
+      />
+      <button onClick={submitReview}>등록</button>
+    </div>
+  ) : (
+    <p style={{ color: 'gray', fontStyle: 'italic' }}>
+      일촌이 되어야 일촌평을 작성할 수 있습니다.
+    </p>
+  )}
+
+  {/* 일촌평 목록 */}
+  <div
+    style={{
+      marginTop: '15px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px',
+      maxHeight: '300px',
+      overflowY: 'auto',
+      paddingRight: '5px'
+    }}
+  >
+    {friendReviews.map(review => (
+      <div
+        key={review.id}
+        style={{
+          border: '1px solid #ccc',
+          borderRadius: '8px',
+          padding: '10px',
+          backgroundColor: '#fefefe',
+          boxShadow: '2px 2px 6px rgba(0,0,0,0.05)'
+        }}
+      >
+        <strong style={{ color: '#2c3e50' }}>{review.reviewer_nickname}</strong>
+        <p style={{ marginTop: '5px', whiteSpace: 'pre-wrap' }}>{review.content}</p>
+      </div>
+    ))}
+  </div>
 </div>
 
-
-      <ul style={styles.commentList}>
+      {/* <ul style={styles.commentList}>
         {comments.map((comment) => (
           <li key={comment.id} style={styles.commentItem}>
             <strong>{comment.writer}</strong> <span style={styles.date}>({comment.date})</span>
             <p>{comment.content}</p>
           </li>
         ))}
-      </ul>
-    </div>
+      </ul> */}
+
          {/* <div>
   {/* 일촌 선택 UI 주석 처리 그대로 유지 
   
@@ -711,8 +829,8 @@ useEffect(() => {
          <div className="menu-container">
            <div className="menu-button">
              <Link to="/"><button>홈</button></Link>
-             <Link to="/diary"><button>다이어리</button></Link>
-             <Link to="/picture"><button>사진첩</button></Link>
+             {/* <Link to="/diary"><button>다이어리</button></Link>
+             <Link to="/picture"><button>사진첩</button></Link> */}
              {/* <a href="guest.html"><button>방명록</button></a> */}
            </div>
          </div>

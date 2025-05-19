@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+	<title>첫번째 페이지</title>
+</head>
+<style>
+    table, tr, td, th{
+        border : 1px solid black;
+        border-collapse: collapse;
+        padding : 5px 10px;
+        text-align: center;
+    }
+
+    .pagination {
+        /* display: flex; */
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+        font-family: Arial, sans-serif;
+    }
+    
+    .pagination__item {
+        margin: 0 5px;
+        font-size: 18px;
+    }
+
+    .pagination__item a {
+        text-decoration: none;
+        color: #007bff;
+        padding: 8px 12px;
+        border: 1px solid #007bff;
+        border-radius: 5px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .pagination__item a:hover {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .pagination__item--active a {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .pagination__item a:active {
+        background-color: #0056b3;
+        color: white;
+    }
+    
+    .pagination__item:first-child a {
+        border-left: none;
+    }
+
+    .pagination__item:last-child a {
+        border-right: none;
+    }
+</style>
+
+<body>
+	<div id="app">
+        <button @click="fnLogout">로그아웃 </button>
+        <select v-model="pageSize" @change="fnGetList"> <!--v-model 사용해서 value값으로-->
+            <option value="5">5개씩</option>
+            <option value="10">10개씩</option>
+            <option value="15">15개씩</option>
+            <option value="20">20개씩</option>
+        </select>
+		<table>
+            <tr>
+                <th>번호</th>
+                <th>제품명</th>
+                <th>설명</th>
+                <th>가격</th>
+                <th>구분</th>
+                <template v-if="user.userStatus == 'A'">
+                    <th>수정</th>
+                    <th>삭제</th>
+                </template>
+               
+            </tr>
+            <tr v-for="item in list">
+                <td>
+                    {{item.productId}}   
+                </td>
+                <td>
+                    <a href="javascript:;" @click="fnGetView(item.productId)">{{item.productName}}</a>
+                </td> 
+                <td>{{item.description}}</td>
+                <td>{{item.price}}</td>
+                <td>{{item.category}}</td> 
+
+                    <td  v-if="user.userStatus == 'A'">  <button @click="fnEdit(item.productId)">수정</button></td> 
+                <td v-if="user.userStatus == 'A'">  <button @click="fnRemove(item.productId)" >삭제</button></td> 
+        
+                
+            </tr>
+
+          
+        </table>
+        <div class="pagination">
+            <span class="pagination__item" v-if="page != 1">
+                <a href="javascript:;" @click="page--; fnGetList()"> &lt; </a>
+            </span>
+            
+            <span v-for="num in index" :class="{'pagination__item': true, 'pagination__item--active': page === num}">
+                <a href="javascript:;" @click="page = num; fnGetList()">{{num}}</a>
+            </span>
+            
+            <span class="pagination__item" v-if="page != index">
+                <a href="javascript:;" @click="page++; fnGetList()"> &gt; </a>
+            </span>
+        </div>
+       
+      <a href="add.html"><button>등록</button></a>
+
+
+	</div>
+</body>
+</html>
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                user : {},
+                list : [],
+                info : null,
+                selectItem : "",
+                index : 1,
+                pageSize : 5,
+                page : 1,
+                userId : ""
+            };
+        },
+        methods: {
+            fnGetList(){
+                let self = this;
+                let offset = (self.page-1) * self.pageSize;
+                let nparmap = "?pageSize="+self.pageSize+"&offset="+offset;
+				fetch("http://localhost:3000/product/list"+nparmap)
+                    .then( res => res.json() )
+                    .then( data => {
+                        self.list = data.list;
+                        console.log(self.list);
+                        self.index = Math.ceil(data.count / self.pageSize);
+                    } )
+            },
+            fnGetView(productId) {
+                let self = this;
+                location.href="product-view.html?productId="+productId;
+              
+            },
+            fnRemove(productId) {
+                let self = this;
+
+				fetch("http://localhost:3000/product/"+productId, {
+                    method : "DELETE",
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("token")
+                     }
+                })
+                    .then( res => res.json() )
+                    .then( data => {
+                        console.log(data);
+                        alert("삭제되었습니다.");
+                        self.fnGetList();
+                    } )
+                    .catch (
+                        err => {
+                            console.log("서버 에러")
+                        }
+                    )
+            },
+            fnEdit(productId) {
+                location.href="product-edit.html?productId="+productId;
+            },
+            fnPage : function(num) {
+                let self = this;
+                self.page = num;
+                self.fnGetList();
+            },
+            fnPageMove : function(direction) {
+                let self = this;
+                if(direction == "next") {
+                    self.page++;
+                    
+
+                } else {
+                    self.page--;
+                }
+                self.fnGetList();
+            },
+            fnLogout() {
+                fetch("http://localhost:3000/user/logout", { //뒤에 파라미터 있는순간 GET이라고 명시
+                method : "GET",
+                credentials : "include"
+            })
+            .then(res => res.json())
+            .then (
+                data => {
+                    
+                    console.log(data);
+                    alert("로그아웃");
+                    location.href="login.html";
+                }
+            )
+            }
+
+           
+        },
+        mounted() {
+            var self = this;
+            let token = localStorage.getItem('token');
+            if(token) {
+                
+            const base64Payload = token.split('.')[1];
+        const payload = atob(base64Payload); // base64 디코딩
+        let user = JSON.parse(payload); // JSON으로 파싱
+        self.user = user;
+        console.log(user);
+        self.fnGetList();
+            } else {
+                alert("로그인하셈");
+                location.href="login.html";
+            }
+            
+            //
+        }
+    });
+    app.mount('#app');
+</script>

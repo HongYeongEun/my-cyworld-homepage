@@ -22,7 +22,7 @@ const [newReview, setNewReview] = useState('');
   const [todayVisitorCount, setTodayVisitorCount] = useState(0);
   const [totalVisitorCount, setTotalVisitorCount] = useState(0);
     const [bgmPlaying, setBgmPlaying] = useState(false); // BGM 재생 상태
-  const [songTitle, setSongTitle] = useState(''); // BGM 제목
+  const [songTitle, setSongTitle] = useState('에픽하이 - fly.mp3'); // BGM 제목
   const [recommendedUsers, setRecommendedUsers] = useState([]);
     const [userInfo, setUserInfo] = useState(null);
     const [notifications, setNotifications] = useState([]);
@@ -33,6 +33,7 @@ const [query, setQuery] = useState('');  // 검색어 상태
   const [friendList, setFriendList] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
   const navigate = useNavigate();
+  
   // JWT Token을 localStorage에서 가져옵니다
   const token = localStorage.getItem('token'); 
 const myUserId = user?.id;
@@ -57,10 +58,38 @@ useEffect(() => {
 
   if (nickname) {
     fetchOwnerId();
+
   }
 }, [nickname]);
 
+useEffect(() => {
+  console.log("✅ myUserId:", myUserId, "(", typeof myUserId, ")");
+  console.log("✅ ownerId:", ownerId, "(", typeof ownerId, ")");
 
+  if (ownerId && myUserId) {
+    const url = `http://localhost:3005/friends/check?userId=${myUserId}&friendId=${ownerId}`;
+    console.log("🌐 Sending GET request to:", url);
+
+    axios.get(url)
+      .then(res => {
+        console.log("🎯 Friend check response status:", res.status);
+        console.log("🎯 Friend check response data:", res.data);
+        setIsFriend(res.data.isFriend);
+      })
+      .catch(err => {
+        if (err.response) {
+          // 서버가 응답했지만 오류 코드가 있는 경우
+          console.error("❌ Friend check error response:", err.response.status, err.response.data);
+        } else if (err.request) {
+          // 요청은 됐지만 응답이 없는 경우
+          console.error("❌ Friend check no response:", err.request);
+        } else {
+          // 요청 설정 중 오류 발생
+          console.error("❌ Friend check setup error:", err.message);
+        }
+      });
+  }
+}, [ownerId, myUserId]);
   useEffect(() => {
   if (!selectedFriendId) return;
 
@@ -95,17 +124,24 @@ const submitReview = () => {
   });
 };
   const handleSearch = async () => {
-    try {
-      const response = await axios.get(`http://localhost:3005/membercy/search-users`, {
-        params: { query }  // 검색어를 query 파라미터로 전달
-      });
-      setSearchResults(response.data.users);
-      setError(null);  // 에러 초기화
-    } catch (err) {
-      setSearchResults([]);  // 검색 결과 초기화
-      setError('사용자를 찾을 수 없습니다.');
-    }
-  };
+  try {
+    const response = await axios.get(`http://localhost:3005/membercy/search-users`, {
+      params: { query }
+    });
+
+    // 중복 닉네임 제거
+    const uniqueUsers = Array.from(
+      new Map(response.data.users.map(user => [user.nickname, user])).values()
+    );
+
+    setSearchResults(uniqueUsers);
+    setError(null);
+  } catch (err) {
+    setSearchResults([]);
+    setError('사용자를 찾을 수 없습니다.');
+  }
+};
+
 
   useEffect(() => {
   if (!token) return;
@@ -367,31 +403,7 @@ const filteredCategoryData = ownerId
 
   return (
  <div>
-<div>
-  <h2>사용자 검색</h2>
-  <input
-    type="text"
-    value={query}
-    onChange={handleChange}
-    placeholder="닉네임 검색"
-  />
-  <button onClick={handleSearch}>검색</button>
 
-  {error && <p>{error}</p>}  {/* 검색 실패 메시지 */}
-
-  {/* 검색 결과가 있을 경우, 목록 표시 */}
-  {searchResults.length > 0 ? (
-  searchResults.map((user, idx) => (
-    <div key={idx}>
-      <Link to={`/${user.nickname}/mini-home`}>
-        {user.nickname}님의 미니홈피로 가기
-      </Link>
-    </div>
-  ))
-) : (
-  query && <p>검색 결과가 없습니다.</p>  // query가 있을 때만 메시지 표시
-)}
-</div>
 
 {requests.map((req) => (
   <div key={req.id} style={{ marginBottom: 12 }}>
@@ -415,45 +427,66 @@ const filteredCategoryData = ownerId
 
 
   <div className="box1">
-    <div className="header">BGM</div>
-    <div className="time" id="current-time"></div>
-    <div className="search">
-      {/* <audio ref={bgmRef} loop>
-        <source src="image/fly.mp3" type="audio/mp3" />
-        브라우저가 오디오 태그를 지원하지 않습니다.
-      </audio> */}
-      <span id="songTitle">{songTitle}</span>
-    </div>
-    <div className="controls">
-      <button className="btn">⏪</button>
-      <button className="btn" onClick={toggleBGM} id="playPauseBtn">
-        {bgmPlaying ? '🔊 일시정지' : '🔊 재생'}
-      </button>
-      <button className="btn">⏩</button>
-    </div>
-    <div>선물가게 / 추천 BGM</div>
-    <div className="recommendations">
-      <img src="image/img1.jpg" alt="추천1" width="90px" height="50px" style={{ border: '1px solid gray' }} />
-      <img src="image/img1.jpg" alt="추천2" width="90px" height="50px" style={{ border: '1px solid gray' }} />
-    </div>
-    <div>
-  <h3>일촌 목록</h3>
-
-  {friendList.length === 0 && <p>일촌이 없어요 😢</p>}
-
-  {friendList.length > 0 && (
-    <ul>
-      {Array.from(
-        new Map(friendList.map(friend => [friend.nickname, friend])).values()
-      ).map(friend => (
-        <li key={friend.id}>
-          <Link to={`/${friend.nickname}/mini-home`}>{friend.nickname}</Link>
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
-  </div>
+            <div className="header">BGM</div>
+            <div className="time" id="current-time"></div>
+            <div className="search">
+              {/* <audio ref={bgmRef} loop>
+                <source src="image/fly.mp3" type="audio/mp3" />
+                브라우저가 오디오 태그를 지원하지 않습니다.
+              </audio> */}
+              <span id="songTitle" className="scrolling-text">{songTitle}</span>
+            </div>
+            <div className="controls">
+              <button className="btn">⏪</button>
+              <button className="btn" onClick={toggleBGM} id="playPauseBtn">
+                {bgmPlaying ? '🔊 일시정지' : '🔊 재생'}
+              </button>
+              <button className="btn">⏩</button>
+              <div>
+                <h2>사용자 검색</h2>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={handleChange}
+                  placeholder="닉네임 검색"
+                />
+                <button onClick={handleSearch}>검색</button>
+              
+                {error && <p>{error}</p>}  {/* 검색 실패 메시지 */}
+              
+                {/* 검색 결과가 있을 경우, 목록 표시 */}
+                {searchResults.length > 0 ? (
+                searchResults.map((user, idx) => (
+                  <div key={idx}>
+                    <Link to={`/${user.nickname}/mini-home`}>
+                      {user.nickname}님의 미니홈피로 가기
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                query && <p></p>  // query가 있을 때만 메시지 표시
+              )}
+              </div>
+            </div>
+            
+            <div>
+          <h3>일촌 목록</h3>
+        
+          {friendList.length === 0 && <p>일촌이 없어요 😢</p>}
+        
+          {friendList.length > 0 && (
+            <ul>
+              {Array.from(
+                new Map(friendList.map(friend => [friend.nickname, friend])).values()
+              ).map(friend => (
+                <li key={friend.id}>
+                  <Link to={`/${friend.nickname}/mini-home`}>{friend.nickname}</Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+          </div>
 
   <div className="bookcover">
     <div className="bookdot"></div>
@@ -579,42 +612,46 @@ const filteredCategoryData = ownerId
           </div>
           {/* 미니룸 */}
         <div className="Miniroom">🏠 일촌평</div>
-        <div>
-  {/* <h3>일촌평 보기 / 작성</h3>
-  <select onChange={e => setSelectedFriendId(e.target.value)} value={selectedFriendId || ''}>
-    <option value="" disabled>일촌 선택</option>
-    {friendList.map(f => (
-      <option key={f.id} value={f.id}>{f.nickname}</option>
+       <div>
+  {/* 일촌평 목록은 항상 보여줌 */}
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    {friendReviews.map(review => (
+      <div key={review.id} style={{
+        border: '1px solid #ccc',
+        borderRadius: '8px',
+        padding: '10px',
+        backgroundColor: '#fefefe',
+        boxShadow: '2px 2px 6px rgba(0,0,0,0.05)'
+      }}>
+        <strong style={{ color: '#2c3e50' }}>{review.writer_nickname}</strong>
+        <p style={{ marginTop: '5px', whiteSpace: 'pre-wrap' }}>{review.content}</p>
+      </div>
     ))}
-  </select> */}
+  </div>
 
-  {selectedFriendId && (
-  <div>
-    <h4>일촌평 목록</h4>
-    {friendReviews.length === 0 ? <p>아직 작성된 일촌평이 없어요.</p> :
-      <ul>
-        {friendReviews.map(r => (
-          <li key={r.id}><b>{r.reviewer_nickname}:</b> {r.content}</li>
-        ))}
-      </ul>
-    }
-
-    {isFriend ? (
-      <>
+  {/* 본인 미니홈피가 아닐 때만 작성란 또는 안내문 표시 */}
+  {myUserId !== homeData?.user_id && (
+    isFriend ? (
+      <div>
         <textarea
           value={newReview}
           onChange={e => setNewReview(e.target.value)}
-          placeholder="일촌평 작성하기..."
+          placeholder="일촌평을 작성하세요."
+          rows={3}
+          style={{ width: '100%', resize: 'none' }}
         />
         <button onClick={submitReview}>등록</button>
-      </>
+      </div>
     ) : (
-      <p style={{ color: 'red' }}>일촌이 아니면 일촌평을 작성할 수 없습니다.</p>
-    )}
-  </div>
-)}
+      <p style={{ color: 'gray', fontStyle: 'italic' }}>
 
+      </p>
+    )
+  )}
 </div>
+
+
+
         </div>
 
         

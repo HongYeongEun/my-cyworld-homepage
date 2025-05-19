@@ -3,6 +3,7 @@
 
 
 body {
+
   background-color: #a3a3a3;
   background-image: url('./assets/pattern.png');
   background-size: 100px;
@@ -11,7 +12,6 @@ body {
   top: 0;
   right: 0;
   bottom: 0;
-  font-family: 'Hi Melody', cursive;
   font-size: 17px;
 }
 
@@ -65,7 +65,7 @@ body {
 }
 
 .item1 {
-
+  margin-left: 50px;
   flex: 0.1;
   border: none;
   padding: 5px;
@@ -484,6 +484,26 @@ a button:hover {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+.scrolling-text {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+  animation: scroll-left 10s linear infinite;
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+  width: 200px; /* 부모가 줄 크기 */
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
 }
 .friend-request-popup {
   position: fixed;

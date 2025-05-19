@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+	<title>첫번째 페이지</title>
+</head>
+<style>
+    table, tr, td, th{
+        border : 1px solid black;
+        border-collapse: collapse;
+        padding : 5px 10px;
+        text-align: center;
+    }
+</style>
+<body>
+	<div id="app">
+		<div>제목 : <input  v-model="info.title"> </div>
+        <div>내용 : <input  v-model="info.contents"> </div>
+
+        <div>
+        <button v-if="boardNo == ''" @click="fnAdd">저장</button>
+        <button  v-else @click="fnEdit">수정</button>
+    </div>
+
+	</div>
+</body>
+</html>
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                info : {
+                    title : "",
+                    contents : ""
+
+                },
+                boardNo : "",
+            };
+        },
+        methods: {
+            fnAdd(){
+                let self = this;
+				fetch("http://localhost:3000/board", {
+                    method : "POST",
+                    headers : {
+                        "Content-type" : "application/json"   
+                    },
+                    body : JSON.stringify(self.info)
+                })
+                    .then( res => res.json() )
+                    .then( data => {
+                        console.log(data);
+                       alert("등록되었습니다.");
+                        
+                    } )
+                    .catch( err => {
+                        console.log("서버 에러");
+                    })
+            },
+            fnEdit(){
+                let self = this;
+				fetch("http://localhost:3000/board/" + self.boardNo, {
+                    method : "PUT",
+                    headers : {
+                        "Content-type" : "application/json"   
+                    },
+                    body : JSON.stringify(self.info)
+                })
+                    .then( res => res.json() )
+                    .then( data => {
+                        alert(data.message);
+                        location.href="board-list.html"
+                    } )
+                    .catch( err => {
+                        console.log("서버 에러");
+                    })
+            },
+            fnGetInfo(){
+                let self = this;
+				fetch("http://localhost:3000/board/"+self.boardNo)
+                    .then( res => res.json() )
+                    .then( data => {
+                        self.info = data.info;
+                        console.log(self.info);
+                    } )
+            }
+
+           
+        },
+        mounted() {
+            var self = this;
+         
+            const queryParams = new URLSearchParams(window.location.search);
+            this.boardNo = queryParams.get('boardNo') || ''; 
+            self.fnGetInfo();
+        }
+    });
+    app.mount('#app');
+</script>

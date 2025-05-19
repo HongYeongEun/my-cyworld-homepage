@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+	<title>첫번째 페이지</title>
+</head>
+<style>
+    table, tr, td, th{
+        border : 1px solid black;
+        border-collapse: collapse;
+        padding : 5px 10px;
+        text-align: center;
+    }
+</style>
+
+<body>
+	<div id="app">
+        <button @click="fnLogout">로그아웃 </button>
+
+		<table>
+            <tr>
+                <th>학번</th>
+                <th>이름</th>
+                <th>학과</th>
+                <th>학년</th>
+                <th>반</th>
+                <th>성별</th>
+                    <th>수정</th>
+                    <th>삭제</th>
+
+               
+            </tr>
+            <tr v-for="item in list">
+                <td>
+                    {{item.stu_no}}   
+                </td>
+                <td>
+                    <a href="javascript:;" @click="fnGetView(item.stu_no)">{{item.stu_name}}</a>
+                </td> 
+                <td>{{item.stu_dept}}</td>
+                <td>{{item.stu_grade}}</td>
+                <td>{{item.stu_class}}</td> 
+                <td>{{item.stu_gender}}</td> 
+
+                <!-- <td>  <button @click="fnEdit(item.productId)">수정</button></td> 
+                <td>  <button @click="fnRemove(item.productId)" >삭제</button></td>  -->
+        
+                
+            </tr>
+
+          
+        </table>
+
+       
+      <a href="add.html"><button>등록</button></a>
+
+
+	</div>
+</body>
+</html>
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                user : {},
+                list : [],
+                info : null,
+                userId : "",
+                stu_no : ""
+            };
+        },
+        methods: {
+            fnGetList(){
+                let self = this;
+
+				fetch("http://localhost:3000/student/list")
+                    .then( res => res.json() )
+                    .then( data => {
+                        self.list = data.list;
+                        console.log(self.list);
+
+                    } )
+            },
+            fnGetView(stuNo) {
+    console.log('Clicked stu_no:', stuNo);  // `stu_no` 값을 콘솔에 출력해 확인
+    if (stuNo) {
+        location.href = "student-view.html?stu_no=" + stuNo;
+    } else {
+        console.error("Invalid student number: ", stuNo);
+    }
+},
+            // fnRemove(productId) {
+            //     let self = this;
+
+			// 	fetch("http://localhost:3000/product/"+productId, {
+            //         method : "DELETE"
+            //     })
+            //         .then( res => res.json() )
+            //         .then( data => {
+            //             console.log(data);
+            //             alert("삭제되었습니다.");
+            //             self.fnGetList();
+            //         } )
+            //         .catch (
+            //             err => {
+            //                 console.log("서버 에러")
+            //             }
+            //         )
+            // },
+            // fnEdit(productId) {
+            //     location.href="product-edit.html?productId="+productId;
+            // },
+            
+            // fnLogout() {
+            //     fetch("http://localhost:3000/user/logout", { //뒤에 파라미터 있는순간 GET이라고 명시
+            //     method : "GET",
+            //     credentials : "include"
+            // })
+            // .then(res => res.json())
+            // .then (
+            //     data => {
+                    
+            //         console.log(data);
+            //         alert("로그아웃");
+            //         location.href="login.html";
+            //     }
+            // )
+            // }
+
+           
+        },
+        mounted() {
+            var self = this;
+
+            self.fnGetList();
+        }
+    });
+    app.mount('#app');
+</script>

@@ -9,8 +9,12 @@ import { Link } from 'react-router-dom';
 function App() {
   const { user } = useAuth(); // 로그인한 사용자 정보
   const [profileImage, setProfileImage] = useState('');
+  const [query, setQuery] = useState('');
   const [currentDate, setCurrentDate] = useState('');
   const [daysInMonth, setDaysInMonth] = useState([]);
+  const [friendList, setFriendList] = useState([]);
+    const [todayVisitorCount, setTodayVisitorCount] = useState(0);
+    const [totalVisitorCount, setTotalVisitorCount] = useState(0);
   const [post] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -19,7 +23,8 @@ function App() {
 const [comments, setComments] = useState([]);  // 기본값을 빈 배열로 설정
 const [commentContent, setCommentContent] = useState(''); // 댓글 내용 상태
 const [currentPostId, setCurrentPostId] = useState(null); // 현재 댓글이 속한 글 ID
-
+    const [bgmPlaying, setBgmPlaying] = useState(false); // BGM 재생 상태
+  const [songTitle, setSongTitle] = useState(''); // BGM 제목
   const [posts, setPosts] = useState([]); // 글 목록 상태 추가
   const [currentPage, setCurrentPage] = useState(1); // 현재 페이지
   const [postsPerPage] = useState(1); // 한 페이지에 보여줄 글의 수 (1개로 설정)
@@ -27,7 +32,50 @@ const [currentPostId, setCurrentPostId] = useState(null); // 현재 댓글이 �
   const [editPostId, setEditPostId] = useState(null); // 수정하려는 글의 ID
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
+    const [error, setError] = useState(null);
+     const [searchResults, setSearchResults] = useState([]); 
   const [editVisibility, setEditVisibility] = useState('public'); // 수정용
+  const token = localStorage.getItem('token'); 
+  const handleChange = (e) => {
+    setQuery(e.target.value);
+  };
+    const handleSearch = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3005/membercy/search-users`, {
+        params: { query }  // 검색어를 query 파라미터로 전달
+      });
+      setSearchResults(response.data.users);
+      setError(null);  // 에러 초기화
+    } catch (err) {
+      setSearchResults([]);  // 검색 결과 초기화
+      setError('사용자를 찾을 수 없습니다.');
+    }
+  };
+   const toggleBGM = () => {
+    const bgm = document.getElementById('bgm');
+    if (bgmPlaying) {
+      bgm.pause();
+      setBgmPlaying(false);
+      setSongTitle('');
+    } else {
+      bgm.play();
+      setBgmPlaying(true);
+      setSongTitle('Fly - Music Title');
+    }
+  };
+    useEffect(() => {
+  if (!token) return;
+  axios.get('http://localhost:3005/friends/list', {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(res => {
+      setFriendList(res.data.friends || []);
+    })
+    .catch(err => {
+      console.error('일촌 목록 불러오기 실패:', err);
+    });
+}, [token]);
+
 useEffect(() => {
   if (currentPostId) {
     loadComments(currentPostId);
@@ -243,7 +291,22 @@ const handleCommentSubmit = async (event) => {
       setMessage('글 수정 실패!');
     }
   };
+useEffect(() => {
+  const myUserId = user?.id;
+  if (!myUserId) return;
 
+  const fetchMyVisitCounts = async () => {
+    try {
+      const visitCountRes = await axios.get(`http://localhost:3005/home/visit-counts-by-id/${myUserId}`);
+      setTodayVisitorCount(visitCountRes.data.todayVisits);
+      setTotalVisitorCount(visitCountRes.data.totalVisits);
+    } catch (err) {
+      console.error('내 방문자 수 가져오기 실패:', err);
+    }
+  };
+
+  fetchMyVisitCounts();
+}, [user]);
   const handleDelete = async (postId) => {
     const token = localStorage.getItem('token');
 
@@ -285,11 +348,76 @@ const prevPage = () => {
 
 
   return (
+    <div>
+      <div className="box1">
+          <div className="header">BGM</div>
+          <div className="time" id="current-time"></div>
+          <div className="search">
+            {/* <audio ref={bgmRef} loop>
+              <source src="image/fly.mp3" type="audio/mp3" />
+              브라우저가 오디오 태그를 지원하지 않습니다.
+            </audio> */}
+            <span id="songTitle">{songTitle}</span>
+          </div>
+          <div className="controls">
+            <button className="btn">⏪</button>
+            <button className="btn" onClick={toggleBGM} id="playPauseBtn">
+              {bgmPlaying ? '🔊 일시정지' : '🔊 재생'}
+            </button>
+            <button className="btn">⏩</button>
+            <div>
+              <h2>사용자 검색</h2>
+              <input
+                type="text"
+                value={query}
+                onChange={handleChange}
+                placeholder="닉네임 검색"
+              />
+              <button onClick={handleSearch}>검색</button>
+            
+              {error && <p>{error}</p>}  {/* 검색 실패 메시지 */}
+            
+              {/* 검색 결과가 있을 경우, 목록 표시 */}
+              {searchResults.length > 0 ? (
+              searchResults.map((user, idx) => (
+                <div key={idx}>
+                  <Link to={`/${user.nickname}/mini-home`}>
+                    {user.nickname}님의 미니홈피로 가기
+                  </Link>
+                </div>
+              ))
+            ) : (
+              query && <p></p>  // query가 있을 때만 메시지 표시
+            )}
+            </div>
+          </div>
+          
+          <div>
+        <h3>일촌 목록</h3>
+      
+        {friendList.length === 0 && <p>일촌이 없어요 😢</p>}
+      
+        {friendList.length > 0 && (
+          <ul>
+            {Array.from(
+              new Map(friendList.map(friend => [friend.nickname, friend])).values()
+            ).map(friend => (
+              <li key={friend.id}>
+                <Link to={`/${friend.nickname}/mini-home`}>{friend.nickname}</Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+        </div>
     <div className="bookcover">
       <div className="bookdot"></div>
       <div className="page">
         <div className="container1">
-          <div className="item1">좌측 상단</div>
+          <div className="item1">
+          <strong>Today</strong> {todayVisitorCount}
+          | <strong>Total</strong>  {totalVisitorCount}
+        </div>
           <div className="item2">
             <div className="profile">
               {/* 프로필 이미지 표시 */}
@@ -328,25 +456,8 @@ const prevPage = () => {
               </div>
             </div>
             <div className="post-list-container">
-              <h2>📜 글 목록</h2>
-              <div className="post-list">
-  {currentPosts.map((post) => (
-  <div key={post.id} className="post-item">
-    <h3>{post.title}</h3>
-    <p>{post.content}</p>
-    <span>{post.created_at}</span>
-    <hr />
-    
-    {/* 댓글 목록 + 댓글 작성이 한 컴포넌트에서 처리됨 */}
-    <CommentForm postId={post.id} />
-  </div>
-))}
-
-
-</div>
-
-            </div>
-            <div className="button-container">
+              
+               <div className="button-container">
               <button onClick={() => setShowPostForm(!showPostForm)}>
                 {showPostForm ? '취소' : '글쓰기'}
               </button>
@@ -389,6 +500,23 @@ const prevPage = () => {
                 {message && <p>{message}</p>}
               </div>
             )}
+              {!showPostForm && (
+  <div className="post-list">
+    {currentPosts.map((post) => (
+      <div key={post.id} className="post-item">
+        <h3>{post.title}</h3>
+        <p>{post.content}</p>
+        <span>{post.created_at}</span>
+        <hr />
+        <CommentForm postId={post.id} />
+      </div>
+    ))}
+  </div>
+)}
+
+
+            </div>
+           
             <div className="pagination">
               <button onClick={prevPage} disabled={currentPage === 1}>
                 이전
@@ -406,11 +534,12 @@ const prevPage = () => {
               <Link to="/"><button>홈</button></Link>
               <Link to="/diary"><button>다이어리</button></Link>
               <Link to="/picture"><button>사진첩</button></Link>
-              <Link to="/guest"><button>방명록</button></Link>
+              {/* <Link to="/guest"><button>방명록</button></Link> */}
             </div>
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
