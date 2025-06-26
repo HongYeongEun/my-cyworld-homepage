@@ -25,9 +25,12 @@ body {
   width: 1120px;
   height: 760px;
 
-  margin: 70px auto;
+  margin-top: 200px;
+  margin-left: 520px; /* 왼쪽 여백 조절 */
+  margin-right: 0; /* 오른쪽 여백 0으로 */
   position: relative;
 }
+
 
 .bookdot {
   border: 2px dashed white;
@@ -402,42 +405,91 @@ a button:hover {
   border-top: 5px solid #838383;
 }
 
+
 .box1 {
+  position: absolute;
+  top: 220px;
+  right: 300px;
+
   width: 250px;
   height: 300px;
+
   background-color: white;
-  float: right;
-  margin-top: 70px;
-  margin-right: 100px;
+  border-radius: 15px;
   font-size: 15px;
   text-align: center;
 }
 
+
 .search {
   margin-top: 10px;
   display: flex;
+  flex-direction: column;
+  padding: 6px;
+  gap: 6px;
+}
+
+.search-title {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-row input {
   border: 1px solid #ccc;
-  padding: 2px;
-  overflow: hidden;
+  padding: 6px;
+  animation: none;
+  position: static;
+  width: 100%;         /* 나머지 공간 차지 */
+  border-radius: 4px;
+}
+
+.search-row button {
+  background: #fff3c3;
+  border: none;
+  padding: 6px 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
   white-space: nowrap;
-  position: relative;
+  border-radius: 4px;
 }
 
-.search input {
-  border: none;
-  flex: 1;
-  padding: 2px;
+.search-row button:hover {
+  background: #fbbf24;
+}
+
+/* .logout-area {
+  margin-top: 12px;
+} */
+
+.logout-btn {
+  top: 165px;
+  right: 750px;
   position: absolute;
-  animation: moveText 5s linear infinite;
-}
 
-.search button {
-  background: #ddd;
+  background: #ef4444;
+  color: white;
   border: none;
-  padding: 2px 5px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-@keyframes moveText {
+.logout-btn:hover {
+  background: #dc2626;
+}
+
+
+/* @keyframes moveText {
   0% {
     left: 100%;
   }
@@ -445,7 +497,7 @@ a button:hover {
   100% {
     left: -100%;
   }
-}
+} */
 .profile img {
   margin-top: 20PX;
   width: 200px;       /* 원하는 너비 */
@@ -485,7 +537,8 @@ a button:hover {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.scrolling-text {
+
+/* .scrolling-text {
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
@@ -494,7 +547,7 @@ a button:hover {
   font-weight: bold;
   font-size: 16px;
   color: #333;
-  width: 200px; /* 부모가 줄 크기 */
+  width: 200px; 
 }
 
 @keyframes scroll-left {
@@ -504,7 +557,7 @@ a button:hover {
   100% {
     transform: translateX(-100%);
   }
-}
+} */
 .friend-request-popup {
   position: fixed;
   bottom: 20px;
@@ -531,66 +584,51 @@ a button:hover {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
- /* .box1 {
-    width: 250px;
-    height: 300px;
-    background-color: white;
-    float: right;
-    margin-top: 70px;
-    margin-right: 100px;
-    font-size: 15px;
-    text-align: center;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    padding: 15px;
-    border-radius: 8px;
-    }
 
-    .search {
-      height: 15px;
-        margin-top: 10px;
+.friend-list ul {
+  padding: 0;
+  list-style: none;
+  margin: 0;
+}
+
+.friend-list li {
+  margin: 6px 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.friend-list li:hover {
+  background-color: #fff3c1;
+}
+
+.friend-list a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+}
+
+
+
+/*일촌 미니홈피*/
+.friend-actions {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  border: 1px solid #cccccc;
-  padding: 5px;
-  overflow: hidden; /* 넘치는 부분 감추기 
-  position: relative;
-  width: 180px; /* 원하는 크기로 조정 
-  background: white;
-  margin-left: 20px;
-    }
-
-    .search input {
-        border: none;
-  background: none;
-  flex: 1;
-  padding: 2px;
-  color: black;
-  font-size: 14px;
-  outline: none;
-  width: 100%;
-     
-    }
-
-    .search span {
-  position: absolute;
-  white-space: nowrap;
-  animation: moveText 5s linear infinite;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.search button {
-  background: #ddd;
-  border: none;
-  padding: 5px;
+.friend-actions button {
+  background-color: #fff5d7;
+  border: 1px solid #e0c97f;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-weight: bold;
   cursor: pointer;
-  margin-left: 20px;
+  transition: background-color 0.2s ease;
 }
-   
 
-@keyframes moveText {
-  0% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
-} */
+.friend-actions button:hover {
+  background-color: #ffe9a8;
+}

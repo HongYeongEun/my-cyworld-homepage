@@ -2,15 +2,20 @@ import React, { useEffect, useState } from 'react';
 import PictureCommentForm from './PictureCommentForm';
 import './App.css';
 import './picture.css';
+
 import { useAuth } from './auth/AuthContext'; // 로그인 정보 가져오기
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
 function App() {
-  const { user } = useAuth(); // 로그인한 사용자 정보
+  const { user, setUser } = useAuth(); // 로그인한 사용자 정보
+  const [selectedFriendId, setSelectedFriendId] = useState(null);
   const [homeData, setHomeData] = useState(null);
+  const [daysInMonth, setDaysInMonth] = useState([]);
   const [profileImage, setProfileImage] = useState('');
   const [post] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
   const [photoAlbumName, setPhotoAlbumName] = useState('');  // 사진첩 이름 (기본값 설정)
   const [isPhotoFormVisible, setIsPhotoFormVisible] = useState(false); // 사진첩 폼 표시 여부
   const [photoTitle, setPhotoTitle] = useState(''); // 사진 제목
@@ -21,15 +26,14 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1); // 현재 페이지 상태
   const [photosPerPage] = useState(1); // 한 페이지당 사진 개수 (1로 설정하여 한 번에 1개만 표시)
 const [currentPaginationRange, setCurrentPaginationRange] = useState([1, 5]);
-  const token = localStorage.getItem('token'); // JWT 토큰을 localStorage에서 가져옵니다
   const [error, setError] = useState(null);
   const [searchResults, setSearchResults] = useState([]); 
   const [query, setQuery] = useState('');
   const [friendList, setFriendList] = useState([]);
     const [todayVisitorCount, setTodayVisitorCount] = useState(0);
     const [totalVisitorCount, setTotalVisitorCount] = useState(0);
-      const [bgmPlaying, setBgmPlaying] = useState(false); // BGM 재생 상태
-    const [songTitle, setSongTitle] = useState(''); // BGM 제목
+const navigate = useNavigate();
+  const [token, setToken] = useState(localStorage.getItem('token') || null);
       useEffect(() => {
   const myUserId = user?.id;
   if (!myUserId) return;
@@ -46,19 +50,18 @@ const [currentPaginationRange, setCurrentPaginationRange] = useState([1, 5]);
 
   fetchMyVisitCounts();
 }, [user]);
+ 
+ useEffect(() => {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const date = today.getDate();
+    setCurrentDate(`${month}월 ${date}일`);
 
-  const toggleBGM = () => {
-    const bgm = document.getElementById('bgm');
-    if (bgmPlaying) {
-      bgm.pause();
-      setBgmPlaying(false);
-      setSongTitle('');
-    } else {
-      bgm.play();
-      setBgmPlaying(true);
-      setSongTitle('Fly - Music Title');
-    }
-  };
+    const days = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    setDaysInMonth([...Array(days)].map((_, i) => i + 1));
+
+  }, [user]);
+
     useEffect(() => {
   if (!token) return;
   axios.get('http://localhost:3005/friends/list', {
@@ -87,24 +90,30 @@ const [currentPaginationRange, setCurrentPaginationRange] = useState([1, 5]);
     setQuery(e.target.value);
   };
    useEffect(() => {
-    // 서버에서 사진 목록 가져오기
-    const fetchPhotos = async () => {
-      try {
-        const res = await axios.get('http://localhost:3005/photos/photos'); // 사진 목록 API 호출
-        if (res.data.success) {
-          setPhotos(res.data.photos); // 성공적으로 데이터를 받아오면 상태에 저장
-        } else {
-          console.log('사진 목록 불러오기 실패');
-        }
-      } catch (error) {
-        console.error('사진 목록 불러오기 오류:', error);
-      } finally {
-        setLoading(false); // 로딩 상태 종료
-      }
-    };
+  const fetchPhotos = async () => {
+    try {
+      const token = localStorage.getItem('token'); // 🔐 저장된 JWT 토큰 꺼내기
+      const res = await axios.get('http://localhost:3005/photos/photos', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    fetchPhotos(); // 컴포넌트가 마운트될 때 API 호출
-  }, []); // 빈 배열로 마운트 시 한 번만 실행
+      if (res.data.success) {
+        setPhotos(res.data.photos);
+      } else {
+        console.log('사진 목록 불러오기 실패');
+      }
+    } catch (error) {
+      console.error('사진 목록 불러오기 오류:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchPhotos();
+}, []);
+ // 빈 배열로 마운트 시 한 번만 실행
 
   // 사용자 정보 및 프로필 이미지 가져오기
   useEffect(() => {
@@ -138,6 +147,15 @@ const [currentPaginationRange, setCurrentPaginationRange] = useState([1, 5]);
     const file = e.target.files[0];
     setSelectedImage(file);
   };
+
+  const handleLogout = () => {
+  console.log('로그아웃 시도');
+  localStorage.removeItem('token');
+  setToken(null);
+  setUser(null);
+  setSelectedFriendId(null);
+  navigate('/login');
+};
 
   // 사진 업로드 및 글쓰기 폼 제출
 const handleSubmit = async (e) => {
@@ -212,66 +230,57 @@ const handleSubmit = async (e) => {
   return (
     <div>
       <div className="box1">
-                  <div className="header">BGM</div>
-                  <div className="time" id="current-time"></div>
-                  <div className="search">
-                    {/* <audio ref={bgmRef} loop>
-                      <source src="image/fly.mp3" type="audio/mp3" />
-                      브라우저가 오디오 태그를 지원하지 않습니다.
-                    </audio> */}
-                    <span id="songTitle">{songTitle}</span>
-                  </div>
-                  <div className="controls">
-                    <button className="btn">⏪</button>
-                    <button className="btn" onClick={toggleBGM} id="playPauseBtn">
-                      {bgmPlaying ? '🔊 일시정지' : '🔊 재생'}
-                    </button>
-                    <button className="btn">⏩</button>
-                    <div>
-                      <h2>사용자 검색</h2>
-                      <input
-                        type="text"
-                        value={query}
-                        onChange={handleChange}
-                        placeholder="닉네임 검색"
-                      />
-                      <button onClick={handleSearch}>검색</button>
-                    
-                      {error && <p>{error}</p>}  {/* 검색 실패 메시지 */}
-                    
-                      {/* 검색 결과가 있을 경우, 목록 표시 */}
-                      {searchResults.length > 0 ? (
-                      searchResults.map((user, idx) => (
-                        <div key={idx}>
-                          <Link to={`/${user.nickname}/mini-home`}>
-                            {user.nickname}님의 미니홈피로 가기
-                          </Link>
-                        </div>
-                      ))
-                    ) : (
-                      query && <p></p>  // query가 있을 때만 메시지 표시
-                    )}
-                    </div>
-                  </div>
-                  
-                  <div>
-                <h3>일촌 목록</h3>
-              
-                {friendList.length === 0 && <p>일촌이 없어요 😢</p>}
-              
-                {friendList.length > 0 && (
-                  <ul>
-                    {Array.from(
-                      new Map(friendList.map(friend => [friend.nickname, friend])).values()
-                    ).map(friend => (
-                      <li key={friend.id}>
-                        <Link to={`/${friend.nickname}/mini-home`}>{friend.nickname}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+        <div className="search">
+          <div className="search-title">사용자 검색</div>
+          
+          <div className="search-row">
+            <input
+              type="text"
+              value={query}
+              onChange={handleChange}
+              placeholder="닉네임 검색"
+            />
+            <button onClick={handleSearch}>검색</button>
+          </div>
+      
+          {/* 검색 결과 표시 */}
+          {error && <p>{error}</p>}
+      
+          {searchResults.length > 0 ? (
+            searchResults.map((user, idx) => (
+              <div key={idx}>
+                <Link to={`/${user.nickname}/mini-home`}>
+                  {user.nickname}님의 미니홈피로 가기
+                </Link>
               </div>
-                </div>
+            ))
+          ) : (
+            query && <p></p>
+          )}
+        </div>
+      
+        <div className="friend-list">
+          <h3>일촌 목록</h3>
+          {friendList.length === 0 && <p>일촌이 없어요 😢</p>}
+      
+          {friendList.length > 0 && (
+            <ul>
+              {Array.from(
+                new Map(friendList.map(friend => [friend.nickname, friend])).values()
+              ).map(friend => (
+                <li key={friend.id}>
+                  <Link to={`/${friend.nickname}/mini-home`}>
+                    {friend.nickname}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+      <div className="logout-area">
+        <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
+      </div>
     <div className="bookcover">
       <div className="bookdot"></div>
       <div className="page">
@@ -307,40 +316,75 @@ const handleSubmit = async (e) => {
         <div className="container2">
           <div className="item3">{user?.nickname}님의 미니홈피</div>
           <div className="item4">
+              <div className="box content-box">
+              <div className="calendar">
+                <div className="date-today">
+                  {/* 오늘 날짜 표시 */}
+                  {currentDate}<br />
+                  {new Date().toLocaleString('en-US', { weekday: 'short' }).toUpperCase()}
+                </div>
+                <div className="date-list">
+                  {daysInMonth.map((day, index) => (
+                    <div key={index} className={`date ${day === new Date().getDate() ? 'date-red' : ''}`}>
+                      <span>{day}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
             <div className="photo-gallery">
               {/* 사진첩 글쓰기 버튼 */}
-              <button onClick={() => setIsPhotoFormVisible(!isPhotoFormVisible)}>
-                {isPhotoFormVisible ? '취소' : '사진올리기'}
-              </button>
+             <div className="photo-button-container">
+  <button onClick={() => setIsPhotoFormVisible(!isPhotoFormVisible)}>
+    {isPhotoFormVisible ? '취소' : '사진올리기'}
+  </button>
+</div>
+
 
               {/* 사진첩 글쓰기 폼 표시 */}
               {isPhotoFormVisible && (
-  <form onSubmit={handleSubmit}>
-    {/* 사진 제목, 설명, 파일 선택 등의 입력 폼 */}
-    <input type="text" value={photoTitle} onChange={handleTitleChange} placeholder="사진 제목" />
-    <textarea value={photoDescription} onChange={handleDescriptionChange} placeholder="사진 설명"></textarea>
+  <form onSubmit={handleSubmit} className="photo-form">
+    <input
+      type="text"
+      value={photoTitle}
+      onChange={handleTitleChange}
+      placeholder="사진 제목"
+    />
+    <textarea
+      value={photoDescription}
+      onChange={handleDescriptionChange}
+      placeholder="사진 설명"
+    ></textarea>
     <input type="file" onChange={handleImageChange} />
     <button type="submit">사진 업로드</button>
   </form>
 )}
 
+
             </div>
             <div>
-       <div className="photo-gallery">
-              {/* 사진 목록 (한 번에 하나만 표시) */}
-              {currentPhotos.map((photo) => (
-                <div key={photo.id} className="photo-item">
-                  <h3 class="photo-title">{photo.caption}</h3>
-                  <img
-                    src={`http://localhost:3005/${photo.image_url}`}
-                    alt={photo.caption}
-                  />
-                  
-                  <p>{photo.description}</p>
-                  <PictureCommentForm postId={post.id} />
-                </div>
-              ))}
-            </div>
+<div className="photo-wrapper"> {/* ← 높이 제한 + 스크롤 담당 */}
+  <div className="photo-gallery">
+    {photos.length === 0 && !isPhotoFormVisible ? (
+      <p className="no-photo-msg">📭 아직 등록된 사진이 없습니다!</p>
+    ) : (
+      currentPhotos.map((photo) => (
+        <div key={photo.id} className="photo-item">
+          <h3 className="photo-title">{photo.caption}</h3>
+          <img
+            src={`http://localhost:3005/${photo.image_url}`}
+            alt={photo.caption}
+          />
+          <p>{photo.description}</p>
+          <PictureCommentForm postId={photo.id} />
+        </div>
+      ))
+    )}
+  </div>
+</div>
+
+
+
         <div className="pagination">
               {visiblePageNumbers.map(number => (
                 <button key={number} onClick={() => paginate(number)}>

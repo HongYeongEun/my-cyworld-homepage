@@ -21,6 +21,13 @@ function LoginPage() {
   e.preventDefault();
 
   try {
+    // const response = await fetch("http://3.36.78.233:3005/membercy/login", { // 로그인 API 호출
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({ username, password }),
+    // });
     const response = await fetch("http://localhost:3005/membercy/login", { // 로그인 API 호출
       method: "POST",
       headers: {
@@ -67,7 +74,7 @@ function LoginPage() {
     }
   
     try {
-      const response = await fetch("http://localhost:3005/me", {
+      const response = await fetch("http://3.36.78.233:3005/me", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,  // 헤더에 토큰 추가

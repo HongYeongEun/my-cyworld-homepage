@@ -3,19 +3,22 @@ import CommentForm from './CommentForm';
 import './App.css';
 import './diary.css';
 import { useAuth } from './auth/AuthContext'; // 로그인 정보 가져오기
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
 function App() {
-  const { user } = useAuth(); // 로그인한 사용자 정보
+  const { user, setUser } = useAuth(); // 로그인한 사용자 정보
   const [profileImage, setProfileImage] = useState('');
   const [query, setQuery] = useState('');
   const [currentDate, setCurrentDate] = useState('');
+  const [selectedFriendId, setSelectedFriendId] = useState(null);
   const [daysInMonth, setDaysInMonth] = useState([]);
   const [friendList, setFriendList] = useState([]);
     const [todayVisitorCount, setTodayVisitorCount] = useState(0);
     const [totalVisitorCount, setTotalVisitorCount] = useState(0);
   const [post] = useState('');
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [visibility, setVisibility] = useState('public');
@@ -23,8 +26,7 @@ function App() {
 const [comments, setComments] = useState([]);  // 기본값을 빈 배열로 설정
 const [commentContent, setCommentContent] = useState(''); // 댓글 내용 상태
 const [currentPostId, setCurrentPostId] = useState(null); // 현재 댓글이 속한 글 ID
-    const [bgmPlaying, setBgmPlaying] = useState(false); // BGM 재생 상태
-  const [songTitle, setSongTitle] = useState(''); // BGM 제목
+
   const [posts, setPosts] = useState([]); // 글 목록 상태 추가
   const [currentPage, setCurrentPage] = useState(1); // 현재 페이지
   const [postsPerPage] = useState(1); // 한 페이지에 보여줄 글의 수 (1개로 설정)
@@ -35,7 +37,7 @@ const [currentPostId, setCurrentPostId] = useState(null); // 현재 댓글이 �
     const [error, setError] = useState(null);
      const [searchResults, setSearchResults] = useState([]); 
   const [editVisibility, setEditVisibility] = useState('public'); // 수정용
-  const token = localStorage.getItem('token'); 
+  const [token, setToken] = useState(localStorage.getItem('token') || null);
   const handleChange = (e) => {
     setQuery(e.target.value);
   };
@@ -51,18 +53,7 @@ const [currentPostId, setCurrentPostId] = useState(null); // 현재 댓글이 �
       setError('사용자를 찾을 수 없습니다.');
     }
   };
-   const toggleBGM = () => {
-    const bgm = document.getElementById('bgm');
-    if (bgmPlaying) {
-      bgm.pause();
-      setBgmPlaying(false);
-      setSongTitle('');
-    } else {
-      bgm.play();
-      setBgmPlaying(true);
-      setSongTitle('Fly - Music Title');
-    }
-  };
+
     useEffect(() => {
   if (!token) return;
   axios.get('http://localhost:3005/friends/list', {
@@ -78,7 +69,7 @@ const [currentPostId, setCurrentPostId] = useState(null); // 현재 댓글이 �
 
 useEffect(() => {
   if (currentPostId) {
-    loadComments(currentPostId);
+    // loadComments(currentPostId);
   }
 }, [currentPostId]);
 
@@ -102,86 +93,7 @@ useEffect(() => {
     setCurrentPostId(post.id); // post가 바뀌면 설정
   }
 }, [post]);
-useEffect(() => {
-  const loadComments = async (postId) => {
-    console.log('댓글 불러오기 시작, postId:', postId);  // postId가 제대로 전달되었는지 확인
-    try {
-      const res = await axios.get(`http://localhost:3005/comments/${postId}`);
-      console.log('API 응답:', res.data);  // 응답 데이터를 확인
-      if (res.data.success) {
-        setComments(res.data.comments); // 댓글 목록 저장
-      } else {
-        console.log("댓글이 없습니다.");
-      }
-    } catch (err) {
-      console.error('댓글 불러오기 실패:', err);
-    }
-  };
 
-  // currentPostId가 설정되었을 때만 댓글을 불러옵니다.
-  if (currentPostId) {
-    loadComments(currentPostId);
-  }
-}, [currentPostId]); // currentPostId가 변경될 때마다 댓글을 다시 불러옴
-
-
-
-// 댓글 상태 확인용
-console.log("댓글",comments); // 상태 확인
-
-
-// 댓글 목록을 불러오는 함수
-const loadComments = async (postId) => {
-  console.log('댓글 불러오기 시작, postId:', postId);  // postId가 제대로 전달되었는지 확인
-  try {
-    const res = await axios.get(`http://localhost:3005/comments/${postId}`);
-    console.log('API 응답:', res.data);  // 응답 데이터를 확인
-    if (res.data.success) {
-      setComments(res.data.comments); // 댓글 목록 저장
-    } else {
-      console.log("댓글이 없습니다.");
-    }
-  } catch (err) {
-    console.error('댓글 불러오기 실패:', err);
-  }
-};
-
-
-
-// 댓글 작성 함수
-const handleCommentSubmit = async (event) => {
-  event.preventDefault();
-
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.error('토큰이 없습니다.');
-    alert('로그인 후 다시 시도해주세요.');
-    return;
-  }
-
-  if (!currentPostId) {
-    console.error('댓글을 작성할 게시글이 선택되지 않았습니다.');
-    return;
-  }
-
-  const newComment = {
-    post_id: currentPostId, // 현재 글 ID
-    content: commentContent, // 댓글 내용
-  };
-
-  try {
-    const res = await axios.post('http://localhost:3005/comment/comments', newComment, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    console.log('댓글 작성 성공:', res.data);
-    loadComments(currentPostId); // 댓글 작성 후 목록 새로고침
-    setCommentContent(''); // 댓글 작성 후 내용 초기화
-  } catch (err) {
-    console.error('댓글 작성 실패:', err);
-  }
-};
 
 
   const loadUserHome = async (userId) => {
@@ -249,6 +161,15 @@ const handleCommentSubmit = async (event) => {
       setMessage('글 작성 실패!');
     }
   };
+
+  const handleLogout = () => {
+  console.log('로그아웃 시도');
+  localStorage.removeItem('token');
+  setToken(null);
+  setUser(null);
+  setSelectedFriendId(null);
+  navigate('/login');
+};
 
   const handleEdit = (post) => {
     
@@ -350,66 +271,58 @@ const prevPage = () => {
   return (
     <div>
       <div className="box1">
-          <div className="header">BGM</div>
-          <div className="time" id="current-time"></div>
-          <div className="search">
-            {/* <audio ref={bgmRef} loop>
-              <source src="image/fly.mp3" type="audio/mp3" />
-              브라우저가 오디오 태그를 지원하지 않습니다.
-            </audio> */}
-            <span id="songTitle">{songTitle}</span>
-          </div>
-          <div className="controls">
-            <button className="btn">⏪</button>
-            <button className="btn" onClick={toggleBGM} id="playPauseBtn">
-              {bgmPlaying ? '🔊 일시정지' : '🔊 재생'}
-            </button>
-            <button className="btn">⏩</button>
-            <div>
-              <h2>사용자 검색</h2>
-              <input
-                type="text"
-                value={query}
-                onChange={handleChange}
-                placeholder="닉네임 검색"
-              />
-              <button onClick={handleSearch}>검색</button>
-            
-              {error && <p>{error}</p>}  {/* 검색 실패 메시지 */}
-            
-              {/* 검색 결과가 있을 경우, 목록 표시 */}
-              {searchResults.length > 0 ? (
-              searchResults.map((user, idx) => (
-                <div key={idx}>
-                  <Link to={`/${user.nickname}/mini-home`}>
-                    {user.nickname}님의 미니홈피로 가기
-                  </Link>
-                </div>
-              ))
-            ) : (
-              query && <p></p>  // query가 있을 때만 메시지 표시
-            )}
-            </div>
-          </div>
+        <div className="search">
+          <div className="search-title">사용자 검색</div>
           
-          <div>
-        <h3>일촌 목록</h3>
+          <div className="search-row">
+            <input
+              type="text"
+              value={query}
+              onChange={handleChange}
+              placeholder="닉네임 검색"
+            />
+            <button onClick={handleSearch}>검색</button>
+          </div>
       
-        {friendList.length === 0 && <p>일촌이 없어요 😢</p>}
+          {/* 검색 결과 표시 */}
+          {error && <p>{error}</p>}
       
-        {friendList.length > 0 && (
-          <ul>
-            {Array.from(
-              new Map(friendList.map(friend => [friend.nickname, friend])).values()
-            ).map(friend => (
-              <li key={friend.id}>
-                <Link to={`/${friend.nickname}/mini-home`}>{friend.nickname}</Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+          {searchResults.length > 0 ? (
+            searchResults.map((user, idx) => (
+              <div key={idx}>
+                <Link to={`/${user.nickname}/mini-home`}>
+                  {user.nickname}님의 미니홈피로 가기
+                </Link>
+              </div>
+            ))
+          ) : (
+            query && <p></p>
+          )}
         </div>
+      
+        <div className="friend-list">
+          <h3>일촌 목록</h3>
+          {friendList.length === 0 && <p>일촌이 없어요 😢</p>}
+      
+          {friendList.length > 0 && (
+            <ul>
+              {Array.from(
+                new Map(friendList.map(friend => [friend.nickname, friend])).values()
+              ).map(friend => (
+                <li key={friend.id}>
+                  <Link to={`/${friend.nickname}/mini-home`}>
+                    {friend.nickname}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+      {/* ✅ box1 아래에 자연스럽게 배치 */}
+<div className="logout-area">
+  <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
+</div>
     <div className="bookcover">
       <div className="bookdot"></div>
       <div className="page">
@@ -517,14 +430,20 @@ const prevPage = () => {
 
             </div>
            
-            <div className="pagination">
-              <button onClick={prevPage} disabled={currentPage === 1}>
-                이전
-              </button>
-              <button onClick={nextPage} disabled={currentPage === Math.ceil(posts.length / postsPerPage)}>
-                다음
-              </button>
-            </div>
+            {posts.length > 0 && (
+              <div className="pagination">
+                <button onClick={prevPage} disabled={currentPage === 1}>
+                  이전
+                </button>
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === Math.ceil(posts.length / postsPerPage)}
+                >
+                  다음
+                </button>
+              </div>
+            )}
+
           </div>
         </div>
 

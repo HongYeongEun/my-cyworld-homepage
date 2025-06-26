@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
+import './PictureCommentForm.css'
 const CommentForm = ({ photoId }) => {
   const [commentContent, setCommentContent] = useState('');
   const [comments, setComments] = useState([]);
@@ -128,20 +128,16 @@ const CommentForm = ({ photoId }) => {
     }
   };
 
-  return (
-  <div>
-    <div>
-
+return (
+  <div className="comment-section">
+    <div className="comment-list">
       {comments.length > 0 ? (
         <ul>
           {comments.map((comment) => (
-            <li
-              key={comment.id}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-            >
-              <div style={{ flex: 1 }}>
+            <li key={comment.id} className="comment-item">
+              <div className="comment-content">
                 {editingCommentId === comment.id ? (
-                  <div>
+                  <div className="comment-edit">
                     <input
                       type="text"
                       value={editingContent}
@@ -153,7 +149,7 @@ const CommentForm = ({ photoId }) => {
                   <p>{comment.content}</p>
                 )}
               </div>
-              <div style={{ marginLeft: '10px' }}>
+              <div className="comment-actions">
                 {editingCommentId !== comment.id && (
                   <>
                     <button onClick={() => handleEditClick(comment)}>수정</button>
@@ -165,11 +161,11 @@ const CommentForm = ({ photoId }) => {
           ))}
         </ul>
       ) : (
-        <p>댓글이 없습니다.</p>
+        <p className="no-comments">💬 댓글이 없습니다.</p>
       )}
     </div>
 
-    <form onSubmit={handleCommentSubmit} style={{ marginTop: '20px' }}>
+    <form onSubmit={handleCommentSubmit} className="comment-form">
       <input
         type="text"
         value={commentContent}
@@ -180,5 +176,6 @@ const CommentForm = ({ photoId }) => {
     </form>
   </div>
 );
+
 };
 export default CommentForm;

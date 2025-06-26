@@ -1,12 +1,19 @@
-.photo-gallery {
-  /* display: flex; */
-  flex-wrap: wrap;
-  gap: 16px;  /* 사진 간격 조정 */
-  max-height: 500px; /* 최대 높이 설정 (원하는 값으로 조정 가능) */
-  overflow-y: auto;  /* 세로 스크롤 추가 */
-  padding: 10px;  /* 여백 추가 */
-  text-align: center;
+.photo-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: white;
+  padding: 10px;
 }
+
+.photo-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
 .pagination {
   display: flex;
   justify-content: center;
@@ -26,6 +33,7 @@
 .pagination button:hover {
   background-color: #ddd;
 }
+
 
 .photo-item {
   text-align: center; /* 부모 요소에서 텍스트(및 이미지) 가운데 정렬 */
@@ -67,3 +75,90 @@
     margin-left: auto;
     margin-right: auto;
   }
+
+  .logout-btn {
+  top: 165px;
+  right: 750px;
+  position: absolute;
+
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+
+.photo-form {
+  padding: 15px;
+  margin: 20px 0;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.photo-form input[type="text"],
+.photo-form textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 100%;
+  resize: none;
+}
+
+.photo-form input[type="file"] {
+  font-size: 0.95rem;
+}
+
+.photo-form button[type="submit"] {
+  background-color: #60a5fa;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.photo-form button[type="submit"]:hover {
+  background-color: #3b82f6;
+}
+
+
+.no-photo-msg {
+  text-align: center;
+  font-size: 16px;
+  color: #888;
+  margin-top: 40px;
+}
+
+.photo-button-container {
+  text-align: left;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+.photo-button-container button {
+  background-color: #93c5fd; /* 연한 파랑 */
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.photo-button-container button:hover {
+  background-color: #60a5fa; /* 호버 시 더 진한 파랑 */
+}

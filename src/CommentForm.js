@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
+import './CommentForm.css'
 const CommentForm = ({ postId }) => {
   const [commentContent, setCommentContent] = useState('');
   const [comments, setComments] = useState([]);
@@ -128,57 +128,53 @@ const CommentForm = ({ postId }) => {
     }
   };
 
-  return (
-  <div>
-    <div>
-      <h3>댓글 목록</h3>
-      {comments.length > 0 ? (
-        <ul>
-          {comments.map((comment) => (
-            <li
-              key={comment.id}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-            >
-              <div style={{ flex: 1 }}>
-                {editingCommentId === comment.id ? (
-                  <div>
-                    <input
-                      type="text"
-                      value={editingContent}
-                      onChange={(e) => setEditingContent(e.target.value)}
-                    />
-                    <button onClick={handleEditSubmit}>수정 완료</button>
-                  </div>
-                ) : (
-                  <p>{comment.content}</p>
-                )}
+ return (
+  <div className="comment-section">
+    <h3>댓글 목록</h3>
+    {comments.length > 0 ? (
+      <ul className="comment-list">
+        {comments.map((comment) => (
+          <li key={comment.id} className="comment-item">
+            <div className="comment-content">
+              {editingCommentId === comment.id ? (
+                <div className="edit-comment">
+                  <input
+                    type="text"
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
+                    className="comment-input"
+                  />
+                  <button onClick={handleEditSubmit} className="comment-btn">수정 완료</button>
+                </div>
+              ) : (
+                <p>{comment.content}</p>
+              )}
+            </div>
+            {editingCommentId !== comment.id && (
+              <div className="comment-actions">
+                <button onClick={() => handleEditClick(comment)} className="comment-btn">수정</button>
+                <button onClick={() => handleDeleteClick(comment.id)} className="comment-btn">삭제</button>
               </div>
-              <div style={{ marginLeft: '10px' }}>
-                {editingCommentId !== comment.id && (
-                  <>
-                    <button onClick={() => handleEditClick(comment)}>수정</button>
-                    <button onClick={() => handleDeleteClick(comment.id)}>삭제</button>
-                  </>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>댓글이 없습니다.</p>
-      )}
-    </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p className="no-comment">댓글이 없습니다.</p>
+    )}
 
-    <form onSubmit={handleCommentSubmit} style={{ marginTop: '20px' }}>
+    <form onSubmit={handleCommentSubmit} className="comment-form">
       <input
         type="text"
         value={commentContent}
         onChange={(e) => setCommentContent(e.target.value)}
         placeholder="댓글을 입력하세요"
+        className="comment-input"
       />
-      <button type="submit">작성</button>
+      <button type="submit" className="comment-submit-btn">작성</button>
     </form>
   </div>
 );
+
 };
 export default CommentForm;

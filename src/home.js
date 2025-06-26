@@ -8,12 +8,15 @@ import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
 function App({currentUserId,onRespond  }) {
-  const { user } = useAuth(); // 로그인한 사용자 정보
+  const { user, setUser } = useAuth(); // 로그인한 사용자 정보
+  const [viewedUser, setViewedUser] = useState(null);
+
+  const [selectedFriendId, setSelectedFriendId] = useState(null);
   const [homeData, setHomeData] = useState(null);
   const [ownerId, setOwnerId] = useState(null);
-  const [selectedFriendId, setSelectedFriendId] = useState(null);
-const [friendReviews, setFriendReviews] = useState([]);
-const [newReview, setNewReview] = useState('');
+
+  const [friendReviews, setFriendReviews] = useState([]);
+  const [newReview, setNewReview] = useState('');
   const [profileImage, setProfileImage] = useState('');
   const [requests, setRequests] = useState([]);
   const [recentDiary, setRecentDiary] = useState('');
@@ -21,21 +24,20 @@ const [newReview, setNewReview] = useState('');
   const [categoryData, setCategoryData] = useState({});
   const [todayVisitorCount, setTodayVisitorCount] = useState(0);
   const [totalVisitorCount, setTotalVisitorCount] = useState(0);
-    const [bgmPlaying, setBgmPlaying] = useState(false); // BGM 재생 상태
-  const [songTitle, setSongTitle] = useState('에픽하이 - fly.mp3'); // BGM 제목
   const [recommendedUsers, setRecommendedUsers] = useState([]);
-    const [userInfo, setUserInfo] = useState(null);
-    const [notifications, setNotifications] = useState([]);
-const [newRequests, setNewRequests] = useState([]);
-const [query, setQuery] = useState('');  // 검색어 상태
+  const [userInfo, setUserInfo] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [newRequests, setNewRequests] = useState([]);
+  const [query, setQuery] = useState('');  // 검색어 상태
   const [searchResults, setSearchResults] = useState([]);  // 검색 결과
   const [error, setError] = useState(null);
   const [friendList, setFriendList] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
+    const [ilchonpyungList, setIlchonpyungList] = useState([]);
   const navigate = useNavigate();
-  
+  const [token, setToken] = useState(localStorage.getItem('token') || null);
   // JWT Token을 localStorage에서 가져옵니다
-  const token = localStorage.getItem('token'); 
+  // const token = localStorage.getItem('token'); 
 const myUserId = user?.id;
   // homepageId를 user.id로 설정
   const homepageId = user?.id;  // user.id가 있을 때만 사용하도록 조건 추가
@@ -45,6 +47,20 @@ const myUserId = user?.id;
   useEffect(() => {
   console.log('🔍 ownerId:', ownerId);
 }, [ownerId]);
+  const loadIlchonpyung = async (userId) => {
+    try {
+      const response = await axios.get(`/api/ilchonpyung/${userId}`);
+      setIlchonpyungList(response.data);
+    } catch (error) {
+      console.error('일촌평 불러오기 실패:', error);
+    }
+  };
+
+  useEffect(() => {
+  if (user?.id) {
+    setSelectedFriendId(user.id);
+  }
+}, [user]);
 
 useEffect(() => {
   const fetchOwnerId = async () => {
@@ -90,15 +106,18 @@ useEffect(() => {
       });
   }
 }, [ownerId, myUserId]);
-  useEffect(() => {
-  if (!selectedFriendId) return;
+useEffect(() => {
+  if (!user.id || !token) return;
 
-  axios.get(`http://localhost:3005/friend-review/${selectedFriendId}`, {
+  axios.get(`http://localhost:3005/friends/friend-review/${user.id}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
-    .then(res => setFriendReviews(res.data.reviews))
-    .catch(console.error);
-}, [selectedFriendId]);
+  .then(res => setFriendReviews(res.data.reviews))
+  .catch(err => console.error('일촌평 불러오기 실패:', err));
+}, [user.id, token]);
+
+
+
 
 const submitReview = () => {
   if (!newReview || !selectedFriendId) return;
@@ -176,6 +195,15 @@ useEffect(() => {
     const intervalId = setInterval(fetchRequests, 10000);
     return () => clearInterval(intervalId);
   }, [token]);
+const handleLogout = () => {
+  console.log('로그아웃 시도');
+  localStorage.removeItem('token');
+  setToken(null);
+  setUser(null);
+  setSelectedFriendId(null);
+  navigate('/login');
+};
+
 
   const handleRespond = async (requestId, action) => {
     try {
@@ -376,19 +404,7 @@ useEffect(() => {
     default: '#E0E0E0',  // 회색
   };
 console.log('selectedFriendId:', selectedFriendId);
-    // BGM 재생/일시정지
-  const toggleBGM = () => {
-    const bgm = document.getElementById('bgm');
-    if (bgmPlaying) {
-      bgm.pause();
-      setBgmPlaying(false);
-      setSongTitle('');
-    } else {
-      bgm.play();
-      setBgmPlaying(true);
-      setSongTitle('Fly - Music Title');
-    }
-  };
+
   const uniqueFriends = Array.from(
   new Map(friendList.map(friend => [friend.nickname, friend])).values()
 );
@@ -402,278 +418,271 @@ const filteredCategoryData = ownerId
   : {};
 
   return (
- <div>
-
-
-{requests.map((req) => (
-  <div key={req.id} style={{ marginBottom: 12 }}>
-    <p><b>{req.from_nickname}</b> 님이 일촌 신청을 보냈습니다.</p>
-    <button
-      onClick={() => handleRespond(req.id, 'accept')}
-      style={{ marginRight: 8, backgroundColor: '#4caf50', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 4 }}
-    >
-      수락
-    </button>
-    <button
-      onClick={() => handleRespond(req.id, 'reject')}
-      style={{ backgroundColor: '#f44336', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 4 }}
-    >
-      거절
-    </button>
-  </div>
-))}
-
-
-
-
-  <div className="box1">
-            <div className="header">BGM</div>
-            <div className="time" id="current-time"></div>
-            <div className="search">
-              {/* <audio ref={bgmRef} loop>
-                <source src="image/fly.mp3" type="audio/mp3" />
-                브라우저가 오디오 태그를 지원하지 않습니다.
-              </audio> */}
-              <span id="songTitle" className="scrolling-text">{songTitle}</span>
-            </div>
-            <div className="controls">
-              <button className="btn">⏪</button>
-              <button className="btn" onClick={toggleBGM} id="playPauseBtn">
-                {bgmPlaying ? '🔊 일시정지' : '🔊 재생'}
-              </button>
-              <button className="btn">⏩</button>
-              <div>
-                <h2>사용자 검색</h2>
-                <input
-                  type="text"
-                  value={query}
-                  onChange={handleChange}
-                  placeholder="닉네임 검색"
-                />
-                <button onClick={handleSearch}>검색</button>
-              
-                {error && <p>{error}</p>}  {/* 검색 실패 메시지 */}
-              
-                {/* 검색 결과가 있을 경우, 목록 표시 */}
-                {searchResults.length > 0 ? (
-                searchResults.map((user, idx) => (
-                  <div key={idx}>
-                    <Link to={`/${user.nickname}/mini-home`}>
-                      {user.nickname}님의 미니홈피로 가기
-                    </Link>
-                  </div>
-                ))
-              ) : (
-                query && <p></p>  // query가 있을 때만 메시지 표시
-              )}
-              </div>
-            </div>
-            
-            <div>
-          <h3>일촌 목록</h3>
-        
-          {friendList.length === 0 && <p>일촌이 없어요 😢</p>}
-        
-          {friendList.length > 0 && (
-            <ul>
-              {Array.from(
-                new Map(friendList.map(friend => [friend.nickname, friend])).values()
-              ).map(friend => (
-                <li key={friend.id}>
-                  <Link to={`/${friend.nickname}/mini-home`}>{friend.nickname}</Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-          </div>
-
-  <div className="bookcover">
-    <div className="bookdot"></div>
-    <div className="page">
-      {/* 상단 영역 */}
-      <div className="container1">
-        <div className="item1">
-          <strong>Today</strong> {todayVisitorCount}
-          | <strong>Total</strong>  {totalVisitorCount}
-        </div>
-        <div className="item2">
-          <div className="profile">
-            <img
-              src={profileImage ? `http://localhost:3005/${profileImage.replace(/\\/g, '/')}` : 'http://localhost:3005/uploads/noimg.JPG'}
-              alt="프로필 이미지"
-            />
-          </div>
-          <div className="profile-dropdown">
-            <div className="dropdown-button">프로필 ▼</div>
-            <div className="dropdown-content">
-              <a href="#">정보1</a>
-              <a href="#">정보2</a>
-            </div>
-          </div>
-          <div className="profile-text">
-            안녕하세요!<br />
-            {user?.nickname}님의 미니홈피에 오신 걸 환영합니다 💕
-          </div>
-        </div>
-      </div>
-
-      {/* 중앙 컨텐츠 영역 */}
-      <div className="container2">
-        <div className="item3">{user?.nickname}님의 미니홈피</div>
-        <div className="item4">
-          <div className="updated_news">📢 최근 소식</div>
-          <div className="updated_news_content">
-
-          </div>
-
-          {/* 카테고리별 최근 글 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
-            {/* 왼쪽 - 카테고리 최근글 */}
-            <div className="category" style={{ flex: 1 }}>
-              <div className="category_box"></div>
-              <div className="category_box_content">
-               <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
-  {Object.entries(categoryData).map(([category, items]) => {
-    const bgColor = categoryLabelColors[category] || categoryLabelColors.default;
-
-    return (
-      <li key={category} style={{ marginBottom: '20px' }}>
-        {/* <h4 style={{ marginBottom: '10px', color: '#222', fontWeight: '700' }}>{category}</h4> */}
-        <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
-          {items.map(item => (
-            <li
-              key={item.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: '8px',
-                padding: '6px 8px',
-                borderRadius: '6px',
-                backgroundColor: '#fafafa',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                cursor: 'default',
-              }}
-            >
-              <span
-                style={{
-                  backgroundColor: bgColor,
-                  color: '#333',
-                  padding: '4px 10px',
-                  borderRadius: '4px',
-                  fontWeight: 'bold',
-                  marginRight: '12px',
-                  minWidth: '60px',
-                  textAlign: 'center',
-                  userSelect: 'none',
-                  fontSize: '0.9rem',
-                }}
-              >
-                {category}
-              </span>
-              <span style={{ fontSize: '1rem', color: '#444' }}>{item.title}</span>
-            </li>
-          ))}
-        </ul>
-      </li>
-    );
-  })}
-</ul>
-
-
-
-
-              </div>
-            </div>
-
-            {/* 오른쪽 - 요약 정보 */}
-            <div className="summary" style={{ flex: 1 }}>
-              <div className="summary_main">
-                <div className="summary_main_content">
-                  <div className="summary_content_category">다이어리</div>
-                  <div className="summary_content_count">8/25</div>
-                </div>
-                <div className="summary_main_content">
-                  <div className="summary_content_category">사진첩</div>
-                  <div className="summary_content_count">8/25</div>
-                </div>
-              </div>
-              <div className="summary_main">
-                <div className="summary_main_content">
-                  <div className="summary_content_category">게시판</div>
-                  <div className="summary_content_count">8/25</div>
-                </div>
-                {/* <div className="summary_main_content">
-                  <div className="summary_content_category">방명록</div>
-                  <div className="summary_content_count">8/25</div>
-                </div> */}
-              </div>
-            </div>
-          </div>
-          {/* 미니룸 */}
-        <div className="Miniroom">🏠 일촌평</div>
-       <div>
-  {/* 일촌평 목록은 항상 보여줌 */}
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-    {friendReviews.map(review => (
-      <div key={review.id} style={{
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        padding: '10px',
-        backgroundColor: '#fefefe',
-        boxShadow: '2px 2px 6px rgba(0,0,0,0.05)'
-      }}>
-        <strong style={{ color: '#2c3e50' }}>{review.writer_nickname}</strong>
-        <p style={{ marginTop: '5px', whiteSpace: 'pre-wrap' }}>{review.content}</p>
+  <div>
+    {/* 🔔 일촌 신청 목록 */}
+    {requests.map((req) => (
+      <div key={req.id} style={{ marginBottom: 12 }}>
+        <p>
+          <b>{req.from_nickname}</b> 님이 일촌 신청을 보냈습니다.
+        </p>
+        <button
+          onClick={() => handleRespond(req.id, 'accept')}
+          style={{
+            marginRight: 8,
+            backgroundColor: '#4caf50',
+            color: 'white',
+            border: 'none',
+            padding: '6px 12px',
+            borderRadius: 4,
+          }}
+        >
+          수락
+        </button>
+        <button
+          onClick={() => handleRespond(req.id, 'reject')}
+          style={{
+            backgroundColor: '#f44336',
+            color: 'white',
+            border: 'none',
+            padding: '6px 12px',
+            borderRadius: 4,
+          }}
+        >
+          거절
+        </button>
       </div>
     ))}
-  </div>
 
-  {/* 본인 미니홈피가 아닐 때만 작성란 또는 안내문 표시 */}
-  {myUserId !== homeData?.user_id && (
-    isFriend ? (
-      <div>
-        <textarea
-          value={newReview}
-          onChange={e => setNewReview(e.target.value)}
-          placeholder="일촌평을 작성하세요."
-          rows={3}
-          style={{ width: '100%', resize: 'none' }}
-        />
-        <button onClick={submitReview}>등록</button>
-      </div>
-    ) : (
-      <p style={{ color: 'gray', fontStyle: 'italic' }}>
+    {/* 🔍 사용자 검색 및 일촌 목록 */}
+    <div className="box1">
+      <div className="search">
+        <div className="search-title">사용자 검색</div>
 
-      </p>
-    )
-  )}
-</div>
-
-
-
+        <div className="search-row">
+          <input
+            type="text"
+            value={query}
+            onChange={handleChange}
+            placeholder="닉네임 검색"
+          />
+          <button onClick={handleSearch}>검색</button>
         </div>
 
-        
+        {error && <p>{error}</p>}
+
+        {searchResults.length > 0 ? (
+          searchResults.map((user, idx) => (
+            <div key={idx}>
+              <Link to={`/${user.nickname}/mini-home`}>
+                {user.nickname}님의 미니홈피로 가기
+              </Link>
+            </div>
+          ))
+        ) : (
+          query && <p></p>
+        )}
       </div>
 
-      {/* 메뉴 영역 */}
-      <div className="container3">
-        <div className="menu-container">
-          <div className="menu-button">
-            <Link to="/"><button>홈</button></Link>
-            <Link to="/diary"><button>다이어리</button></Link>
-            <Link to="/picture"><button>사진첩</button></Link>
-            {/* <a href="guest.html"><button>방명록</button></a> */}
+      <div className="friend-list">
+        <h3>일촌 목록</h3>
+        {friendList.length === 0 && <p>일촌이 없어요 😢</p>}
+        {friendList.length > 0 && (
+          <ul>
+            {Array.from(
+              new Map(
+                friendList.map((friend) => [friend.nickname, friend])
+              ).values()
+            ).map((friend) => (
+              <li key={friend.id}>
+                <Link to={`/${friend.nickname}/mini-home`}>
+                  {friend.nickname}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+
+    {/* 🔓 로그아웃 버튼 */}
+    <div className="logout-area">
+      <button className="logout-btn" onClick={handleLogout}>
+        로그아웃
+      </button>
+    </div>
+
+    {/* 📖 미니홈피 북 커버 */}
+    <div className="bookcover">
+      <div className="bookdot"></div>
+      <div className="page">
+        {/* 상단 */}
+        <div className="container1">
+          <div className="item1">
+            <strong>Today</strong> {todayVisitorCount} | <strong>Total</strong>{' '}
+            {totalVisitorCount}
+          </div>
+          <div className="item2">
+            <div className="profile">
+              <img
+                src={
+                  profileImage
+                    ? `http://localhost:3005/${profileImage.replace(/\\/g, '/')}`
+                    : 'http://localhost:3005/uploads/noimg.JPG'
+                }
+                alt="프로필 이미지"
+              />
+            </div>
+            <div className="profile-dropdown">
+              <div className="dropdown-button">프로필 ▼</div>
+              <div className="dropdown-content">
+                <a href="#">정보1</a>
+                <a href="#">정보2</a>
+              </div>
+            </div>
+            <div className="profile-text">
+              안녕하세요!
+              <br />
+              {user?.nickname}님의 미니홈피에 오신 걸 환영합니다 💕
+            </div>
+          </div>
+        </div>
+
+        {/* 중앙 */}
+        <div className="container2">
+          <div className="item3">{user?.nickname}님의 미니홈피</div>
+
+          <div className="item4">
+            <div className="updated_news">📢 최근 소식</div>
+            <div className="updated_news_content"></div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
+              {/* 왼쪽 - 카테고리별 최근 글 */}
+              <div className="category" style={{ flex: 1 }}>
+                <div className="category_box"></div>
+                <div className="category_box_content">
+                  <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
+                    {Object.entries(categoryData).map(([category, items]) => {
+                      const bgColor = categoryLabelColors[category] || categoryLabelColors.default;
+                      return (
+                        <li key={category} style={{ marginBottom: '20px' }}>
+                          <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
+                            {items.map((item) => (
+                              <li
+                                key={item.id}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  marginBottom: '8px',
+                                  padding: '6px 8px',
+                                  borderRadius: '6px',
+                                  backgroundColor: '#fafafa',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                                  cursor: 'default',
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    backgroundColor: bgColor,
+                                    color: '#333',
+                                    padding: '4px 10px',
+                                    borderRadius: '4px',
+                                    fontWeight: 'bold',
+                                    marginRight: '12px',
+                                    minWidth: '60px',
+                                    textAlign: 'center',
+                                    userSelect: 'none',
+                                    fontSize: '0.9rem',
+                                  }}
+                                >
+                                  {category}
+                                </span>
+                                <span style={{ fontSize: '1rem', color: '#444' }}>{item.title}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </div>
+
+              {/* 오른쪽 - 요약 */}
+              <div className="summary" style={{ flex: 1 }}>
+                <div className="summary_main">
+                  <div className="summary_main_content">
+                    <div className="summary_content_category">다이어리</div>
+                    <div className="summary_content_count">8/25</div>
+                  </div>
+                  <div className="summary_main_content">
+                    <div className="summary_content_category">사진첩</div>
+                    <div className="summary_content_count">8/25</div>
+                  </div>
+                </div>
+                <div className="summary_main">
+                  <div className="summary_main_content">
+                    <div className="summary_content_category">게시판</div>
+                    <div className="summary_content_count">8/25</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 🏠 일촌평 */}
+            <div className="Miniroom">🏠 일촌평</div>
+            <div>
+              {isFriend ? (
+                <div>
+                  <textarea
+                    value={newReview}
+                    onChange={(e) => setNewReview(e.target.value)}
+                    placeholder="일촌평을 작성하세요."
+                    rows={3}
+                    style={{ width: '90%', resize: 'none', marginLeft: '20px' }}
+                  />
+                  <button onClick={submitReview}>등록</button>
+                </div>
+              ) : (
+                <p style={{ color: 'gray', fontStyle: 'italic' }}></p>
+              )}
+
+              <div
+                style={{
+                  marginLeft: '20px',
+                  marginTop: '15px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                  paddingRight: '5px',
+                }}
+              >
+                {friendReviews.length === 0 && <p>일촌평이 없습니다.</p>}
+                {friendReviews.map((review) => (
+                  <div key={review.id}>
+                    <strong>{review.reviewer_nickname}</strong>
+                    <p>{review.content}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 하단 메뉴 */}
+        <div className="container3">
+          <div className="menu-container">
+            <div className="menu-button">
+              <Link to="/"><button>홈</button></Link>
+              <Link to="/diary"><button>다이어리</button></Link>
+              <Link to="/picture"><button>사진첩</button></Link>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-
-    
-  );
+);
 }
-
 export default App;

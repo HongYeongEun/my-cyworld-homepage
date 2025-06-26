@@ -35,6 +35,11 @@ function SignupPage() {
     if (formData.profile_img) formDataToSend.append('profile_img', formData.profile_img);
   
     try {
+      // const response = await fetch("http://3.36.78.233/membercy/join", {
+      //   method: "POST",
+      //   body: formDataToSend,
+      // });
+
       const response = await fetch("http://localhost:3005/membercy/join", {
         method: "POST",
         body: formDataToSend,

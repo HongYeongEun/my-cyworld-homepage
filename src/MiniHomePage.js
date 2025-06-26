@@ -10,16 +10,16 @@ function App(targetUserId) {
   const { nickname } = useParams();
 //   console.log('받은 닉네임:', nickname);
   const navigate = useNavigate();
-const [ownerId, setOwnerId] = useState(null);
-const [myFriends, setmyFriends] = useState(null);
+  const [ownerId, setOwnerId] = useState(null);
+  const [myFriends, setmyFriends] = useState(null);
   const token = localStorage.getItem('token');
   const myUserId = localStorage.getItem('myUserId');
-    const [viewedUser, setViewedUser] = useState(null);
-const [newReview, setNewReview] = useState('');
-const [selectedFriendId, setSelectedFriendId] = useState(null);
-const [friendReviews, setFriendReviews] = useState([]);
+  const [viewedUser, setViewedUser] = useState(null);
+  const [newReview, setNewReview] = useState('');
+  const [selectedFriendId, setSelectedFriendId] = useState(null);
+  const [friendReviews, setFriendReviews] = useState([]);
   const [requests, setRequests] = useState([]);
-const [isFriend, setIsFriend] = useState(false);
+  const [isFriend, setIsFriend] = useState(false);
   const [homeData, setHomeData] = useState(null);
   const [profileImage, setProfileImage] = useState('');
   const [categoryData, setCategoryData] = useState({});
@@ -29,86 +29,28 @@ const [isFriend, setIsFriend] = useState(false);
   const [songTitle, setSongTitle] = useState('에픽하이 - Love Love Love.mp3');
   const [recommendedUsers, setRecommendedUsers] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
-const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState('');
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState(null);
-const [currentUserId, setCurrentUserId] = useState(null);
-const senderId = currentUserId; // 예: 로그인한 유저
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const senderId = currentUserId; // 예: 로그인한 유저
   const [ilchonpyungList, setIlchonpyungList] = useState([]);
-  
-  
-// const receiverId = profileOwnerId; //
-//   const [comments, setComments] = useState([
-//     {
-//       id: 1,
-//       writer: 'hoya',
-//       content: '일촌이 되어서 기뻐요! 😊',
-//       date: '2025-05-15',
-//     },
-//     {
-//       id: 2,
-//       writer: 'minji',
-//       content: '오늘도 좋은 하루 보내~!',
-//       date: '2025-05-14',
-//     },
-//   ]);
-
-//   const styles = {
- 
-//   form: {
-//     marginBottom: '1rem',
-//   },
-//   textarea: {
-//     width: '70%',
-//     height: '30px',
-//     padding: '0.5rem',
-//     fontSize: '14px',
-//     borderRadius: '0.5rem',
-//     border: '1px solid #ccc',
-//     resize: 'none',
-//   },
-//   button: {
-//     marginRight:'0.5rem',
-//     marginTop: '0.5rem',
-//     padding: '0.5rem 1rem',
-//     background: '#00000',
-//     color: 'black',
-//     border: 'none',
-//     cursor: 'pointer',
-//   },
-//   commentList: {
-//     listStyle: 'none',
-//     padding: 0,
-//   },
-//   commentItem: {
-//     background: '#fff',
-//     padding: '0.75rem',
-//     marginBottom: '0.5rem',
-//     borderRadius: '0.5rem',
-    
-//   },
-//   date: {
-//     fontSize: '0.8rem',
-//     color: '#999',
-//     marginLeft: '0.5rem',
-//   },
-// };
   const homepageId = user?.nickname;
   const isOwnHome = viewedUser && String(currentUserId) === String(viewedUser.id);
-  // 👇 아래에 콘솔 추가!
-console.log('viewedUser:', viewedUser);
-console.log('currentUserId:', currentUserId);
-console.log('viewedUser.id:', viewedUser?.id);
-console.log('isOwnHome:', isOwnHome);
-  const loadIlchonpyung = async (userId) => {
-    try {
-      const response = await axios.get(`/api/ilchonpyung/${userId}`);
-      setIlchonpyungList(response.data);
-    } catch (error) {
-      console.error('일촌평 불러오기 실패:', error);
-    }
-  };
+    // 👇 아래에 콘솔 추가!
+  console.log('viewedUser:', viewedUser);
+  console.log('currentUserId:', currentUserId);
+  console.log('viewedUser.id:', viewedUser?.id);
+  console.log('isOwnHome:', isOwnHome);
+    const loadIlchonpyung = async (userId) => {
+      try {
+        const response = await axios.get(`/api/ilchonpyung/${userId}`);
+        setIlchonpyungList(response.data);
+      } catch (error) {
+        console.error('일촌평 불러오기 실패:', error);
+      }
+    };
 useEffect(() => {
   console.log("✅ myUserId:", myUserId, "(", typeof myUserId, ")");
   console.log("✅ ownerId:", ownerId, "(", typeof ownerId, ")");
@@ -139,21 +81,6 @@ useEffect(() => {
 }, [ownerId, myUserId]);
 
 
-
-
-//  const handleSubmit = () => {
-//     if (!newComment.trim()) return;
-
-//     const newEntry = {
-//       id: comments.length + 1,
-//       writer: 'you', // 로그인 유저 기준
-//       content: newComment,
-//       date: new Date().toISOString().split('T')[0],
-//     };
-
-//     setComments([newEntry, ...comments]);
-//     setNewComment('');
-//   };
 useEffect(() => {
   if (viewedUser?.id) {
     setOwnerId(viewedUser.id);
@@ -204,15 +131,7 @@ useEffect(() => {
     });
   }
 }, [viewedUser?.id, token]);
-// useEffect(() => {
-//   if (viewedUser?.id) {
-//     axios.get(`http://localhost:3005/friend-review/${viewedUser.id}`, {
-//       headers: { Authorization: `Bearer ${token}` }
-//     })
-//     .then(res => setFriendReviews(res.data.reviews))
-//     .catch(err => console.error('일촌평 불러오기 실패:', err));
-//   }
-// }, [viewedUser]);
+
 console.log('일촌인지 여부:', isFriend);
   // 🔍 검색 핸들러
   const handleSearch = async () => {
@@ -407,157 +326,55 @@ useEffect(() => {
   console.log('렌더링되는 값:', todayVisitorCount, totalVisitorCount);
   return (
  <div>
-{/* <div style={{
-  maxWidth: '270px',
-  margin: '15px auto',
-  padding: '15px',
-  borderRadius: '12px',
-  fontFamily: "'Arial Rounded MT Bold', Arial, sans-serif",
-  color: '#3b2f0b',
-  border: '1.5px solidrgb(0, 0, 0)',
-}}>
-  <h2 style={{
-    textAlign: 'center',
-    marginBottom: '12px',
-    fontWeight: 'bold',
-    fontSize: '18px',
-  }}>
-    사용자 검색 🔍
-  </h2>
-  
-  <div style={{ display: 'flex', marginBottom: '12px' }}>
-    <input
-      type="text"
-      value={query}
-      onChange={handleChange}
-      placeholder="닉네임 검색"
-      style={{
-        flex: 1,
-        padding: '8px 12px',
-        borderRadius: '10px 0 0 10px',
-        border: '1.5px solidrgb(0, 0, 0)',
-        fontSize: '14px',
-        outline: 'none'
-      }}
-    />
-    <button
-      onClick={handleSearch}
-      style={{
-        padding: '8px 16px',
-        backgroundColor: '#e67e22',
-        border: 'none',
-        color: '#fff',
-        borderRadius: '0 10px 10px 0',
-        fontWeight: '600',
-        fontSize: '14px',
-        cursor: 'pointer',
-        transition: 'background-color 0.3s ease'
-      }}
-      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#d35400'}
-      onMouseLeave={e => e.currentTarget.style.backgroundColor = '#e67e22'}
-    >
-      검색
-    </button>
-  </div>
-
-  {error && (
-    <p style={{ color: '#c0392b', fontWeight: 'bold', textAlign: 'center', fontSize: '13px' }}>
-      {error}
-    </p>
-  )}
-
-  {searchResults.length > 0 ? (
-    searchResults.map((user, idx) => (
-      <div key={idx} style={{
-        marginBottom: '8px',
-        padding: '6px 10px',
-        borderRadius: '8px',
-        border: '1px solid #b9770e',
-        backgroundColor: '#fff',
-      }}>
-        <Link to={`/${user.nickname}/mini-home`} style={{
-          textDecoration: 'none',
-          color: '#b9770e',
-          fontWeight: '600',
-          fontSize: '14px'
-        }}>
-          {user.nickname}님의 미니홈피로 가기
-        </Link>
-      </div>
-    ))
-  ) : (
-    query && (
-      <p style={{ textAlign: 'center', color: '#7d6608', fontStyle: 'italic', fontSize: '13px' }}>
-        검색 결과가 없습니다.
-      </p>
-    )
-  )}
-</div> */}
-
 
  
 
- { !isFriend && viewedUser?.id && currentUserId !== viewedUser.id && (
-  <button onClick={() => sendFriendRequest(currentUserId, viewedUser.id)}>
-    일촌 신청
-  </button>
-)}
+ <div className="box1">
 
+  <div className="search">
+        <div className="search-title">사용자 검색</div>
 
- 
- 
- 
-<div className="box1">
-   <div className="header">BGM</div>
-            <div className="time" id="current-time"></div>
-            <div className="search">
-              {/* <audio ref={bgmRef} loop>
-                <source src="image/fly.mp3" type="audio/mp3" />
-                브라우저가 오디오 태그를 지원하지 않습니다.
-              </audio> */}
-              <span id="songTitle" className="scrolling-text">{songTitle}</span>
+        <div className="search-row">
+          <input
+            type="text"
+            value={query}
+            onChange={handleChange}
+            placeholder="닉네임 검색"
+          />
+          <button onClick={handleSearch}>검색</button>
+        </div>
+
+        {error && <p>{error}</p>}
+
+        {searchResults.length > 0 ? (
+          searchResults.map((user, idx) => (
+            <div key={idx}>
+              <Link to={`/${user.nickname}/mini-home`}>
+                {user.nickname}님의 미니홈피로 가기
+              </Link>
             </div>
-            <div className="controls">
-              <button className="btn">⏪</button>
-              <button className="btn" onClick={toggleBGM} id="playPauseBtn">
-                {bgmPlaying ? '🔊 일시정지' : '🔊 재생'}
-              </button>
-              <button className="btn">⏩</button>
-              </div>
-
-  <div>
-    <h2>사용자 검색</h2>
-    <input
-      type="text"
-      value={query}
-      onChange={handleChange}
-      placeholder="닉네임 검색"
-    />
-    <button onClick={handleSearch}>검색</button>
-  
-    {error && <p>{error}</p>}  {/* 검색 실패 메시지 */}
-  
-    {/* 검색 결과가 있을 경우, 목록 표시 */}
-    {searchResults.length > 0 ? (
-    searchResults.map((user, idx) => (
-      <div key={idx}>
-        <Link to={`/${user.nickname}/mini-home`}>
-          {user.nickname}님의 미니홈피로 가기
-        </Link>
+          ))
+        ) : (
+          query && <p></p>
+        )}
       </div>
-    ))
-  ) : (
-    query && <p>검색 결과가 없습니다.</p>  // query가 있을 때만 메시지 표시
+  {/* ✅ 돌아가기 & 일촌신청 버튼 영역 */}
+  <div className="friend-actions">
+  {!isFriend && viewedUser?.id && currentUserId !== viewedUser.id && (
+    <button onClick={() => sendFriendRequest(currentUserId, viewedUser.id)}>
+      💌 일촌 신청
+    </button>
   )}
-  </div>
-
-  
-</div>
-<div style={{ margin: '10px 0' }}>
   <Link to={`/${user?.nickname || 'default'}/`}>
     <button>🏠 내 미니홈피로 돌아가기</button>
   </Link>
 </div>
+
+
+
+
+</div>
+
  
    <div className="bookcover">
      <div className="bookdot"></div>
@@ -610,7 +427,6 @@ useEffect(() => {
  
      return (
        <li key={category} style={{ marginBottom: '20px' }}>
-         {/* <h4 style={{ marginBottom: '10px', color: '#222', fontWeight: '700' }}>{category}</h4> */}
          <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
            {items.map(item => (
              <li
@@ -669,61 +485,11 @@ useEffect(() => {
                    <div className="summary_content_count">8/12</div>
                  </div>
                </div>
-               {/* <div className="summary_main">
-                 <div className="summary_main_content">
-                   <div className="summary_content_category">게시판</div>
-                   <div className="summary_content_count">/25</div>
-                 </div>
-                 <div className="summary_main_content">
-                   <div className="summary_content_category">방명록</div>
-                   <div className="summary_content_count">8/25</div>
-                 </div>
-               </div> */}
              </div>
            </div>
            {/* 미니룸 */}
          <div className="Miniroom">🏠 일촌평</div>
 
-      {/* <h3></h3>
-
-      <div style={{
-  display: 'flex',
-  alignItems: 'center',
-  border: '2px solid #ccc',
-  borderRadius: '8px',
-  padding: '8px',
-  maxWidth: '600px',
-  margin: '0 auto'
-}}>
-  <textarea
-    placeholder="일촌에게 하고 싶은 말을 남겨보세요!"
-    value={newComment}
-    onChange={(e) => setNewComment(e.target.value)}
-    style={{
-      flex: 1,
-      border: 'none',
-      resize: 'none',
-      height: '40px',
-      outline: 'none',
-      fontSize: '14px',
-      marginRight: '10px',
-      backgroundColor: 'transparent'
-    }}
-  />
-  <button
-    onClick={handleSubmit}
-    style={{
-      padding: '8px 16px',
-      border: 'none',
-      backgroundColor: '#007BFF',
-      color: 'white',
-      borderRadius: '4px',
-      cursor: 'pointer'
-    }}
-  >
-    등록
-  </button>
-</div> */}
 
 <div>
   {/* 작성 영역: 일촌일 때만 보여줌 */}
@@ -775,49 +541,7 @@ useEffect(() => {
   </div>
 </div>
 
-      {/* <ul style={styles.commentList}>
-        {comments.map((comment) => (
-          <li key={comment.id} style={styles.commentItem}>
-            <strong>{comment.writer}</strong> <span style={styles.date}>({comment.date})</span>
-            <p>{comment.content}</p>
-          </li>
-        ))}
-      </ul> */}
-
-         {/* <div>
-  {/* 일촌 선택 UI 주석 처리 그대로 유지 
-  
-  {viewedUser && (
-  <div>
-    <h4>일촌평 목록</h4>
-    {friendReviews.length === 0 ? (
-      <p>아직 작성된 일촌평이 없어요.</p>
-    ) : (
-      <ul>
-        {friendReviews.map(r => (
-          <li key={r.id}>
-            <b>{r.reviewer_nickname}:</b> {r.content}
-          </li>
-        ))}
-      </ul>
-    )}
-
-    {isFriend ? (
-      <>
-        <textarea
-          value={newReview}
-          onChange={e => setNewReview(e.target.value)}
-          placeholder="일촌평 작성하기..."
-        />
-        <button onClick={submitReview}>등록</button>
-      </>
-    ) : (
-      <p style={{ color: 'red' }}>일촌이 아니면 일촌평을 작성할 수 없습니다.</p>
-    )}
-  </div>
-)}
-
-</div> */}
+      
 
          </div>
  
@@ -829,9 +553,6 @@ useEffect(() => {
          <div className="menu-container">
            <div className="menu-button">
              <Link to="/"><button>홈</button></Link>
-             {/* <Link to="/diary"><button>다이어리</button></Link>
-             <Link to="/picture"><button>사진첩</button></Link> */}
-             {/* <a href="guest.html"><button>방명록</button></a> */}
            </div>
          </div>
        </div>
