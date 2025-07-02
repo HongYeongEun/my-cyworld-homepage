@@ -1,7 +1,7 @@
 
 
-![image](https://github.com/user-attachments/assets/3cdb8a7c-6c96-4cc7-8e46-c69f107147ae)
 
+<img src="https://github.com/user-attachments/assets/3cdb8a7c-6c96-4cc7-8e46-c69f107147ae" width="470" height="340"/>
 
 
 
@@ -55,35 +55,40 @@
 
 **🏠 홈**
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/3d9be064-5bbf-48f8-9474-86ff861ee804" width="420" height="300"/>
-  <img src="https://github.com/user-attachments/assets/1e3b0f70-e13c-464b-bbff-0b763420d30b" width="420" height="300"/>
-</p>
 
-- 일촌 신청 수락 및 일촌평 작성 기능을 제공합니다.  
-- 친구 목록과 사용자 검색 기능을 통해 다른 사용자의 미니홈피를 방문할 수 있습니다.  
-- 최근 다이어리 및 사진첩 게시글이 미니홈피 메인 화면에 표시됩니다.  
-- 사용자 프로필 이미지와 기본 정보가 자동으로 로드됩니다.
-- 로그아웃 버튼도 제공합니다.
+  <img src="https://github.com/user-attachments/assets/3d9be064-5bbf-48f8-9474-86ff861ee804" width="470" height="340"/>
+  <img src="https://github.com/user-attachments/assets/1e3b0f70-e13c-464b-bbff-0b763420d30b" width="470" height="340"/>
 
-- 다이어리
+
+- **일촌 신청** 수락 및 **일촌평 작성** 기능을 제공합니다  
+- **친구 목록**, **사용자 검색**을 통해 다른 미니홈피 방문 가능합니다.  
+- **최근 다이어리/사진첩 게시글**이 메인 화면에 표시됩니다.
+- **프로필 이미지 + 기본 정보** 자동 로드됩니다.
+- **로그아웃** 기능 제공됩니다.
+
+
+**📘 다이어리**
   
-  ![image](https://github.com/user-attachments/assets/57f26f3e-ec0b-42cd-8b41-9542e484f31f)
+<img src="https://github.com/user-attachments/assets/5f708779-f2c7-4d83-a8b6-bc690eb70d50" width="350" height="250" alt="react 다이어리 글목록" />
+<img src="https://github.com/user-attachments/assets/dc99411e-59d8-4b53-a5f2-78567f97b71e" width="350" height="250" alt="react 다이어리 글쓰기" />
 
-`- 다이어리 CRUD: 다이어리 글 생성, 조회, 수정, 삭제`
+- 게시글 및 댓글 CRUD (작성, 조회, 수정, 삭제)
 
-`- 댓글 CRUD: 다이어리 댓글 생성, 조회, 수정, 삭제`
 
-- 사진첩
-  ![image](https://github.com/user-attachments/assets/5e5b94b2-bc31-42d4-baa7-d78cd43970a7)
+**🖼 사진첩**
 
-`- 사진첩 CRUD: 사진첩 글 생성, 조회, 수정, 삭제`
+  <img src="https://github.com/user-attachments/assets/5fbd404b-8c3b-4368-b751-b9073a685343" width="350" height="250" alt="react 다이어리 글쓰기" />
+  <img src="https://github.com/user-attachments/assets/7638b73d-28b9-45f2-90a2-f27c323be6e4" width="350" height="250" alt="react 다이어리 글쓰기" />
+ 
 
-`- 댓글 CRUD: 사진첩 댓글 생성, 조회, 수정, 삭제`
+- 게시글 및 댓글 CRUD (작성, 조회, 수정, 삭제)
 
-- 친구 미니홈피
-  ![image](https://github.com/user-attachments/assets/1fccad47-736d-4898-bb09-6a51e2f781a9)
-`- 일촌 신청, 일촌평 작성, 내 미니홈피로 이동`
+**👩 친구 미니홈피** 
+
+ <img src="https://github.com/user-attachments/assets/6ae45af4-29f0-4874-87e2-75eb2833c867" width="550" height="350" alt="react 다이어리 글쓰기" />
+
+- **일촌 신청**, **일촌평 작성**, **내 미니홈피로 이동** 기능 제공됩니다.
+
 
 
 ### 프로젝트 후기
